@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer by Akram - Secure Messenger</title>
+    <title>Akram Secure Messenger & Admin Panel</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -15,31 +15,46 @@
         .chat-container { width: 100%; max-width: 450px; height: 94vh; background: #fff; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
         body.dark-mode .chat-container { background: #1e1e1e; color: #f5f6fa; }
         .chat-header { background: #075e54; color: white; padding: 8px 12px; display: flex; flex-direction: column; gap: 5px; }
-        body.dark-mode .chat-header { background: #2f3640; }
         .chat-title-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: bold; }
         .header-controls { display: flex; gap: 4px; align-items: center; }
         .theme-btn, .clear-btn { font-size: 0.6rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
         .theme-btn { background: #f1f2f6; color: #333; }
         .clear-btn { background: #ff4757; color: white; }
+        
         .sub-nav-bar { display: flex; gap: 4px; }
         .sub-nav-bar button { flex: 1; padding: 4px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 0.75rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .sub-nav-bar button.active { background: #25d366; color: #000; }
+        
         .screen-section { display: none; flex: 1; padding: 15px; background: #efeae2; flex-direction: column; overflow-y: auto; gap: 12px; }
         body.dark-mode .screen-section { background: #121212; }
         .screen-section.active { display: flex; }
+        
+        /* Login & Admin Panel styles */
+        .auth-box, .admin-panel { display: flex; flex-direction: column; gap: 10px; justify-content: center; height: 100%; padding: 20px; background: #fff; border-radius: 10px; }
+        body.dark-mode .auth-box, body.dark-mode .admin-panel { background: #2f3640; color: #fff; }
+        .auth-input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
+        .auth-btn { background: #075e54; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
         .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: #efeae2; display: flex; flex-direction: column; gap: 8px; }
         body.dark-mode .chat-messages { background: #121212; }
         .message { max-width: 78%; padding: 7px 9px; border-radius: 8px; font-size: 0.85rem; position: relative; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
         .message.incoming { background: #ffffff; color: #000; align-self: flex-start; border-top-left-radius: 0; }
-        body.dark-mode .message.incoming { background: #2f3640; color: #f5f6fa; }
         .message.outgoing { background: #dcf8c6; color: #000; align-self: flex-end; border-top-right-radius: 0; }
-        body.dark-mode .message.outgoing { background: #00b894; color: #fff; }
+        
         .msg-actions { display: flex; gap: 6px; margin-top: 4px; font-size: 0.7rem; align-items: center; }
         .msg-actions button { background: none; border: none; cursor: pointer; font-weight: bold; }
         .report-btn { color: #8e44ad; }
         .block-btn { color: #c0392b; }
-        .legal-footer { padding: 8px; font-size: 0.65rem; color: #666; text-align: center; border-top: 1px solid #ddd; background: #f9f9f9; }
+        
+        .chat-input-area { display: flex; padding: 10px; background: #f0f0f0; gap: 8px; align-items: center; border-top: 1px solid #ddd; }
+        body.dark-mode .chat-input-area { background: #2f3640; border-color: #444; }
+        .chat-input { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; outline: none; font-size: 0.85rem; }
+        .send-btn { background: #075e54; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        
+        .legal-footer { padding: 6px; font-size: 0.6rem; color: #666; text-align: center; border-top: 1px solid #ddd; background: #f9f9f9; }
         body.dark-mode .legal-footer { background: #1a1a1a; color: #aaa; border-color: #333; }
+        
+        .admin-controls-box { border: 1px solid #ddd; padding: 8px; border-radius: 5px; margin-bottom: 5px; background: #f9f9f9; color: #000; }
     </style>
 </head>
 <body>
@@ -48,53 +63,63 @@
         <!-- Header -->
         <div class="chat-header">
             <div class="chat-title-row">
-                <span>Chat with Akram</span>
+                <span id="header-title">Chat with Akram</span>
                 <div class="header-controls">
                     <button class="theme-btn" onclick="toggleTheme()">Dark</button>
                     <button class="clear-btn" onclick="clearChat()">Clear</button>
                 </div>
             </div>
-            <div class="sub-nav-bar">
+            <div class="sub-nav-bar" id="navbar" style="display: none;">
                 <button class="active" onclick="switchTab('chats')">Chats</button>
                 <button onclick="switchTab('contacts')">Contacts</button>
-                <button onclick="switchTab('status')">Status</button>
-                <button onclick="switchTab('profile')">Profile</button>
+                <button onclick="switchTab('admin')">Admin Panel</button>
+            </div>
+        </div>
+
+        <!-- Login / Request Screen -->
+        <div id="auth-screen" class="screen-section active" style="display: flex;">
+            <div class="auth-box">
+                <h3>Login to Messenger</h3>
+                <p style="font-size: 0.8rem; color: #666;">Kripya apna mobile number dalein. Login ke liye Akram (Admin) ki manzoori zaroori hai.</p>
+                <input type="text" id="userPhone" class="auth-input" placeholder="Mobile Number (e.g. 9876543210)">
+                <button class="auth-btn" onclick="requestLogin()">Login Request Bhejein</button>
+                <p id="auth-status" style="font-size: 0.8rem; color: #d35400; text-align: center;"></p>
             </div>
         </div>
 
         <!-- Chats Section -->
-        <div id="chats-screen" class="screen-section active chat-messages">
-            <div class="message incoming">
-                <div>Hiii</div>
-                <div class="msg-actions">
-                    <span style="color: blue; cursor: pointer;" onclick="react('like')">Like: 0</span> | 
-                    <span style="color: red; cursor: pointer;" onclick="react('love')">Love: 0</span> | 
-                    <span style="color: orange; cursor: pointer;" onclick="react('smile')">Smile: 0</span>
-                    <button style="color: red;" onclick="deleteMsg(this)">Delete</button>
-                    <button class="report-btn" onclick="reportUser()">Report</button>
-                    <button class="block-btn" onclick="blockUser()">Block</button>
+        <div id="chats-screen" class="screen-section">
+            <div class="chat-messages" id="chat-messages-box">
+                <div class="message incoming">
+                    <div>Welcome to Akram Secure Messenger!</div>
                 </div>
+            </div>
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <input type="text" id="messageInput" class="chat-input" placeholder="Type message..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
 
         <!-- Contacts Section -->
         <div id="contacts-screen" class="screen-section">
-            <p>Go to 'Contacts' to search friends and start private chat!</p>
+            <p>Approved Users Directory - Secure Chat Active.</p>
         </div>
 
-        <!-- Status Section -->
-        <div id="status-screen" class="screen-section">
-            <p>Status updates will appear here.</p>
-        </div>
-
-        <!-- Profile Section -->
-        <div id="profile-screen" class="screen-section">
-            <p>Developer: Akram</p>
+        <!-- Admin Panel Section -->
+        <div id="admin-screen" class="screen-section">
+            <div class="admin-panel">
+                <h3>Admin Control Panel (Akram)</h3>
+                <p style="font-size: 0.75rem; color: #555;">Yahan aapko visitor aur login requests dikhengi:</p>
+                <div id="admin-requests-list" style="overflow-y: auto; max-height: 250px; display: flex; flex-direction: column; gap: 8px;">
+                    <p style="font-size: 0.8rem;">Koi pending request nahi hai.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Legal Disclaimer Footer -->
         <div class="legal-footer">
-            Disclaimer: Yeh ek personal/educational app hai. Misuse ke liye user khud zimmedaar hai.
+            Disclaimer: Secure App. Misuse par user block kar diya jayega.
         </div>
     </div>
 
@@ -108,36 +133,116 @@
             document.querySelectorAll('.sub-nav-bar button').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tabName + '-screen').classList.add('active');
-            event.target.classList.add('active');
+            if(event && event.target) event.target.classList.add('active');
         }
 
-        function deleteMsg(btn) {
-            btn.closest('.message').remove();
+        // Login Request System simulating Admin Approval
+        function requestLogin() {
+            const phone = document.getElementById('userPhone').value.trim();
+            const statusText = document.getElementById('auth-status');
+            
+            if(phone.length < 10) {
+                alert("Kripya sahi 10 digit ka mobile number dalein!");
+                return;
+            }
+
+            // Visitor data tracking simulated log
+            console.log("New Visitor/Login Attempt from Number:", phone, "Time:", new Date());
+
+            // Check if user is Akram (Admin simulation using a master number or just local control)
+            if(phone === "7283988065") { // Aapka number as Admin
+                alert("Welcome Admin Akram!");
+                allowAccess(true);
+                return;
+            }
+
+            statusText.innerText = "Request bhej di gayi hai. Admin (Akram) ki manzoori ka intezaar hai...";
+            
+            // Adding to Admin simulated list view
+            setTimeout(() => {
+                const adminList = document.getElementById('admin-requests-list');
+                if(adminList.innerHTML.includes("Koi pending request nahi hai.")) {
+                    adminList.innerHTML = '';
+                }
+                
+                const reqDiv = document.createElement('div');
+                reqDiv.className = 'admin-controls-box';
+                reqDiv.innerHTML = `
+                    <b>User:</b> ${phone}<br>
+                    <button style="background:green; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="approveUser('${phone}', this)">Accept</button>
+                    <button style="background:red; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="rejectUser(this)">Reject / Ban</button>
+                `;
+                adminList.appendChild(reqDiv);
+            }, 1000);
         }
 
-        function react(type) {
-            alert(type + ' reaction added!');
-        }
-
-        function reportUser() {
-            const reason = prompt("Kripya report karne ka karan batayein (Jaise: Spam, Abuse):");
-            if (reason) {
-                alert("User ko report kar diya gaya hai. Admin iski jaanch karega.");
+        function approveUser(phone, btn) {
+            alert("User " + phone + " ko approve kar diya gaya hai!");
+            btn.parentElement.innerHTML = "<b style='color:green;'>Approved</b>";
+            // Agar yahi current user hai toh ise access mil jayega
+            if(document.getElementById('userPhone').value.trim() === phone) {
+                allowAccess(false);
             }
         }
 
-        function blockUser() {
-            if (confirm("Kya aap waqai is user ko block karna chahte hain?")) {
-                alert("User block ho chuka hai. Ab yeh aapse chat nahi kar payega.");
+        function rejectUser(btn) {
+            alert("User ko block/reject kar diya gaya hai!");
+            btn.parentElement.remove();
+        }
+
+        function allowAccess(isAdmin) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('chats-screen').classList.add('active');
+            document.getElementById('navbar').style.display = 'flex';
+            if(isAdmin) {
+                document.getElementById('header-title').innerText = "Admin Dashboard - Akram";
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            if(messageText === '') return;
+
+            const chatScreen = document.getElementById('chat-messages-box');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message outgoing';
+            newMessage.innerHTML = `
+                <div>${messageText}</div>
+                <div class="msg-actions">
+                    <button class="report-btn" onclick="reportUser()">Report</button>
+                    <button class="block-btn" onclick="blockUser(this)">Remove</button>
+                </div>
+            `;
+            chatScreen.appendChild(newMessage);
+            input.value = '';
+            chatScreen.scrollTop = chatScreen.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function reportUser() {
+            alert("Report darj ki gayi hai. Admin is par action lega.");
+        }
+
+        function blockUser(btn) {
+            if(confirm("Kya aap is message/user ko hataana chahte hain?")) {
+                btn.closest('.message').remove();
+                alert("User activity ko hata diya gaya hai.");
             }
         }
 
         function clearChat() {
             if(confirm("Saari chats clear karni hain?")) {
-                document.getElementById('chats-screen').innerHTML = '';
+                document.getElementById('chat-messages-box').innerHTML = '';
             }
         }
     </script>
 </body>
 </html>
+
 
