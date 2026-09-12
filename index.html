@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Akram - Secure Messenger</title>
+    <title>अकरम चैट - सिक्योर मैसेंजर</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -29,17 +29,16 @@
         .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
         .chat-input-area button { background: #075e54; color: white; border: none; padding: 10px 18px; border-radius: 50%; cursor: pointer; }
         .hidden { display: none !important; }
-        #recaptcha-container { margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
-        <h2>WhatsApp Clone Login</h2>
-        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">अपने मोबाइल नंबर पर असली OTP मंगाकर लॉगिन करें</p>
+        <h2>अकरम चैट - सिक्योर लॉगिन</h2>
+        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">मोबाइल नंबर दर्ज करें और OTP प्राप्त करें</p>
         
-        <input type="text" id="phoneNumber" placeholder="Phone Number (+91...)">
+        <input type="text" id="phoneNumber" placeholder="+91 से शुरू करें (जैसे +91728...)">
         <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
         
         <div id="recaptcha-container"></div>
@@ -54,7 +53,7 @@
     <!-- Chat Screen -->
     <div id="chatScreen" class="chat-container hidden">
         <div class="chat-header">
-            <h3>Chat with Akram</h3>
+            <h3>Akram Chat</h3>
             <button onclick="logout()" style="background: #d9534f; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         </div>
         <div class="chat-messages" id="chatMessages">
@@ -67,7 +66,6 @@
     </div>
 
     <script>
-        // TODO: अपने Firebase Project की असली Config यहाँ भरें (अगर पुरानी वाली नहीं है तो)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -77,34 +75,27 @@
             appId: "YOUR_APP_ID"
         };
 
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
 
         const auth = firebase.auth();
 
-        // reCAPTCHA Verifier Setup
-        window.onload = function() {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                'size': 'normal',
-                'callback': (response) => {
-                    // reCAPTCHA solved, allow send otp
-                }
-            }, auth);
-            window.recaptchaVerifier.render();
-        };
+        // Invisible reCAPTCHA setup
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible'
+        }, auth);
 
         function sendOTP() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const statusMsg = document.getElementById('statusMsg');
 
             if (!phoneNumber) {
-                statusMsg.innerText = "कृपया सही मोबाइल नंबर (+91...) दर्ज करें!";
+                statusMsg.innerText = "कृपया सही मोबाइल नंबर दर्ज करें!";
                 return;
             }
 
-            statusMsg.innerText = "OTP भेजा जा रहा है, कृपया प्रतीक्षा करें...";
+            statusMsg.innerText = "OTP भेजा जा रहा है, प्रतीक्षा करें...";
             const appVerifier = window.recaptchaVerifier;
 
             auth.signInWithPhoneNumber(phoneNumber, appVerifier)
@@ -129,7 +120,6 @@
             }
 
             window.confirmationResult.confirm(code).then((result) => {
-                // User signed in successfully.
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('chatScreen').classList.remove('hidden');
             }).catch((error) => {
@@ -163,3 +153,4 @@
     </script>
 </body>
 </html>
+            
