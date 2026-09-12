@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>अकरम चैट - सिक्योर मैसेंजर</title>
+    <title>Akram Chat - Secure Login</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -35,10 +35,10 @@
 
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
-        <h2>अकरम चैट - सिक्योर लॉगिन</h2>
+        <h2>Akram Chat - Secure Login</h2>
         <p style="margin-bottom: 20px; color: #666; font-size: 14px;">मोबाइल नंबर दर्ज करें और OTP प्राप्त करें</p>
         
-        <input type="text" id="phoneNumber" placeholder="+91 से शुरू करें (जैसे +91728...)">
+        <input type="text" id="phoneNumber" placeholder="+917383988065">
         <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
         
         <div id="recaptcha-container"></div>
@@ -81,10 +81,15 @@
 
         const auth = firebase.auth();
 
-        // Invisible reCAPTCHA setup
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-            'size': 'invisible'
-        }, auth);
+        // Safely initialize RecaptchaVerifier
+        window.addEventListener('DOMContentLoaded', () => {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved
+                }
+            }, auth);
+        });
 
         function sendOTP() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
@@ -153,4 +158,4 @@
     </script>
 </body>
 </html>
-            
+
