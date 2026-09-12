@@ -29,7 +29,6 @@
         body.dark-mode .screen-section { background: #121212; }
         .screen-section.active { display: flex; }
         
-        /* Login & Admin Panel styles */
         .auth-box, .admin-panel { display: flex; flex-direction: column; gap: 10px; justify-content: center; height: 100%; padding: 20px; background: #fff; border-radius: 10px; }
         body.dark-mode .auth-box, body.dark-mode .admin-panel { background: #2f3640; color: #fff; }
         .auth-input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
@@ -76,13 +75,24 @@
             </div>
         </div>
 
-        <!-- Login / Request Screen -->
+        <!-- Login / OTP Screen -->
         <div id="auth-screen" class="screen-section active" style="display: flex;">
             <div class="auth-box">
-                <h3>Login to Messenger</h3>
-                <p style="font-size: 0.8rem; color: #666;">Kripya apna mobile number dalein. Login ke liye Akram (Admin) ki manzoori zaroori hai.</p>
-                <input type="text" id="userPhone" class="auth-input" placeholder="Mobile Number (e.g. 9876543210)">
-                <button class="auth-btn" onclick="requestLogin()">Login Request Bhejein</button>
+                <h3>Login with OTP & Approval</h3>
+                <p style="font-size: 0.8rem; color: #666;">Pehle apna mobile number daal kar OTP verify karein.</p>
+                
+                <!-- Step 1: Phone Input -->
+                <div id="step-phone" style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" id="userPhone" class="auth-input" placeholder="Mobile Number (e.g. 9876543210)">
+                    <button class="auth-btn" onclick="sendOTP()">OTP Bhejein</button>
+                </div>
+
+                <!-- Step 2: OTP Input (Hidden initially) -->
+                <div id="step-otp" style="display: none; flex-direction: column; gap: 10px;">
+                    <input type="text" id="userOtp" class="auth-input" placeholder="4-digit OTP enter karein">
+                    <button class="auth-btn" onclick="verifyOTPAndRequest()">Verify OTP & Request Bhejein</button>
+                </div>
+
                 <p id="auth-status" style="font-size: 0.8rem; color: #d35400; text-align: center;"></p>
             </div>
         </div>
@@ -94,7 +104,6 @@
                     <div>Welcome to Akram Secure Messenger!</div>
                 </div>
             </div>
-            <!-- Input Area -->
             <div class="chat-input-area">
                 <input type="text" id="messageInput" class="chat-input" placeholder="Type message..." onkeypress="handleKeyPress(event)">
                 <button class="send-btn" onclick="sendMessage()">Send</button>
@@ -124,18 +133,17 @@
     </div>
 
     <script>
-        // FIREBASE CONFIGURATION (Aapke project ka database link yahan hai)
         const firebaseConfig = {
-            databaseURL: "https://akram-chat-default-rtdb.firebaseio.com/" // Agar aapka koi aur Firebase URL ho toh yahan change kar sakte hain
+            databaseURL: "https://akram-chat-default-rtdb.firebaseio.com/"
         };
         
-        // Initialize Firebase safely if not already initialized
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        let currentPhone = "";
+        let generatedOtp = "";
+        let pendingPhone = "";
 
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
@@ -149,8 +157,7 @@
             if(event && event.target) event.target.classList.add('active');
         }
 
-        // Login Request send to Firebase Database
-        function requestLogin() {
+        function sendOTP() {
             const phone = document.getElementById('userPhone').value.trim();
             const statusText = document.getElementById('auth-status');
             
@@ -159,32 +166,57 @@
                 return;
             }
 
-            currentPhone = phone;
-            statusText.innerText = "Request Firebase par bhej di gayi hai. Manzoori ka intezaar hai...";
+            pendingPhone = phone;
+            // Generate a 4-digit random OTP
+            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Display OTP on screen for testing ease (or simulated SMS)
+            alert("Aapka OTP code hai: " + generatedOtp);
+            statusText.innerText = "OTP bhej diya gaya hai. Kripya niche darj karein.";
+            
+            document.getElementById('step-phone').style.display = 'none';
+            document.getElementById('step-otp').style.display = 'flex';
+        }
 
-            // Clean phone number for database key (removing special chars if any)
-            const userKey = phone.replace(/[^0-9]/g, '');
+        function verifyOTPAndRequest() {
+            const enteredOtp = document.getElementById('userOtp').value.trim();
+            const statusText = document.getElementById('auth-status');
 
-            // Save/Update request in Firebase database under 'users'
+            if(enteredOtp !== generatedOtp) {
+                alert("Galat OTP! Kripya dobara koshish karein.");
+                return;
+            }
+
+            // AGAR ADMIN NUMBER HAI TOH DIRECT ACCESS
+            if(pendingPhone === "7283988065") {
+                alert("OTP Verified! Welcome Admin Akram.");
+                allowAccess(true);
+                return;
+            }
+
+            // DHOOSRE USER KE LIYE OTP VERIFIED -> AB ADMIN APPROVAL REQUEST JAYEGI
+            statusText.innerText = "OTP Verified! Admin (Akram) ki manzoori ke liye request bhej di gayi hai...";
+            document.getElementById('step-otp').style.display = 'none';
+
+            const userKey = pendingPhone.replace(/[^0-9]/g, '');
+
             db.ref('loginRequests/' + userKey).set({
-                phone: phone,
+                phone: pendingPhone,
                 status: 'pending',
                 time: new Date().toLocaleTimeString()
             });
 
-            // Listen for status changes (Real-time approval listener)
             db.ref('loginRequests/' + userKey + '/status').on('value', (snapshot) => {
                 const val = snapshot.val();
                 if(val === 'approved') {
-                    alert("Aapka login approve ho gaya hai!");
-                    allowAccess(phone === "7283988065");
+                    alert("Admin ne aapki request approve kar di hai!");
+                    allowAccess(false);
                 } else if(val === 'rejected') {
                     statusText.innerText = "Aapki request Admin dwara reject ya ban kar di gayi hai.";
                 }
             });
         }
 
-        // Admin panel loads requests from Firebase in Real-time
         function loadAdminRequests() {
             const adminList = document.getElementById('admin-requests-list');
             db.ref('loginRequests').on('value', (snapshot) => {
@@ -229,16 +261,9 @@
             if(isAdmin) {
                 document.getElementById('header-title').innerText = "Admin Dashboard - Akram";
                 document.getElementById('admin-tab-btn').style.display = 'block';
-                loadAdminRequests(); // Load live requests for admin
+                loadAdminRequests();
             }
         }
-
-        // Check if admin is pre-logging in with master number
-        document.getElementById('userPhone').addEventListener('input', function() {
-            if(this.value.trim() === "7283988065") {
-                // Auto setup admin bypass option if needed
-            }
-        });
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -284,3 +309,4 @@
     </script>
 </body>
 </html>
+            
