@@ -3,310 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akram Secure Messenger & Admin Panel</title>
+    <title>Chat with Akram - Secure Messenger</title>
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #74b9ff, #a29bfe); height: 100vh; display: flex; justify-content: center; align-items: center; }
-        body.dark-mode { background: linear-gradient(135deg, #2d3436, #1e272e); }
-        .chat-container { width: 100%; max-width: 450px; height: 94vh; background: #fff; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; margin-bottom: 20px; }
-        body.dark-mode .chat-container { background: #1e1e1e; color: #f5f6fa; }
-        .chat-header { background: #075e54; color: white; padding: 8px 12px; display: flex; flex-direction: column; gap: 5px; }
-        .chat-title-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: bold; }
-        .header-controls { display: flex; gap: 4px; align-items: center; }
-        .theme-btn, .clear-btn { font-size: 0.6rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
-        .theme-btn { background: #f1f2f6; color: #333; }
-        .clear-btn { background: #ff4757; color: white; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-container, .chat-container { width: 100%; max-width: 450px; background: #fff; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; }
+        .login-container h2 { margin-bottom: 20px; color: #075e54; }
+        .login-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .login-container button:hover { background: #128c7e; }
         
-        .sub-nav-bar { display: flex; gap: 4px; }
-        .sub-nav-bar button { flex: 1; padding: 4px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 0.75rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .sub-nav-bar button.active { background: #25d366; color: #000; }
-        
-        .screen-section { display: none; flex: 1; padding: 15px; background: #efeae2; flex-direction: column; overflow-y: auto; gap: 12px; }
-        body.dark-mode .screen-section { background: #121212; }
-        .screen-section.active { display: flex; }
-        
-        .auth-box, .admin-panel { display: flex; flex-direction: column; gap: 10px; justify-content: center; height: 100%; padding: 20px; background: #fff; border-radius: 10px; }
-        body.dark-mode .auth-box, body.dark-mode .admin-panel { background: #2f3640; color: #fff; }
-        .auth-input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
-        .auth-btn { background: #075e54; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        
-        .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: #efeae2; display: flex; flex-direction: column; gap: 8px; }
-        body.dark-mode .chat-messages { background: #121212; }
-        .message { max-width: 78%; padding: 7px 9px; border-radius: 8px; font-size: 0.85rem; position: relative; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .message.incoming { background: #ffffff; color: #000; align-self: flex-start; border-top-left-radius: 0; }
-        .message.outgoing { background: #dcf8c6; color: #000; align-self: flex-end; border-top-right-radius: 0; }
-        
-        .msg-actions { display: flex; gap: 6px; margin-top: 4px; font-size: 0.7rem; align-items: center; }
-        .msg-actions button { background: none; border: none; cursor: pointer; font-weight: bold; }
-        .report-btn { color: #8e44ad; }
-        .block-btn { color: #c0392b; }
-        
-        .chat-input-area { display: flex; padding: 10px; background: #f0f0f0; gap: 8px; align-items: center; border-top: 1px solid #ddd; }
-        body.dark-mode .chat-input-area { background: #2f3640; border-color: #444; }
-        .chat-input { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; outline: none; font-size: 0.85rem; }
-        .send-btn { background: #075e54; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
-        
-        .legal-footer { padding: 6px; font-size: 0.6rem; color: #666; text-align: center; border-top: 1px solid #ddd; background: #f9f9f9; }
-        body.dark-mode .legal-footer { background: #1a1a1a; color: #aaa; border-color: #333; }
-        
-        .admin-controls-box { border: 1px solid #ddd; padding: 8px; border-radius: 5px; margin-bottom: 5px; background: #f9f9f9; color: #000; }
+        /* Chat UI */
+        .chat-header { background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; }
+        .message.sent { background: #dcf8c6; align-self: flex-end; }
+        .message.received { background: #fff; align-self: flex-start; }
+        .chat-input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 10px; align-items: center; }
+        .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
+        .chat-input-area button { background: #075e54; color: white; border: none; padding: 10px 18px; border-radius: 50%; cursor: pointer; }
+        .hidden { display: none !important; }
+        #recaptcha-container { margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <!-- Header -->
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <h2>WhatsApp Clone Login</h2>
+        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">अपने मोबाइल नंबर पर असली OTP मंगाकर लॉगिन करें</p>
+        
+        <input type="text" id="phoneNumber" placeholder="Phone Number (+91...)">
+        <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        
+        <div id="recaptcha-container"></div>
+
+        <div id="otpSection" class="hidden">
+            <input type="text" id="otpCode" placeholder="6-digit OTP enter karein">
+            <button onclick="verifyOTP()">Verify OTP & Login</button>
+        </div>
+        <p id="statusMsg" style="margin-top: 15px; color: #d9534f; font-size: 14px;"></p>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chatScreen" class="chat-container hidden">
         <div class="chat-header">
-            <div class="chat-title-row">
-                <span id="header-title">Chat with Akram</span>
-                <div class="header-controls">
-                    <button class="theme-btn" onclick="toggleTheme()">Dark</button>
-                    <button class="clear-btn" onclick="clearChat()">Clear</button>
-                </div>
-            </div>
-            <div class="sub-nav-bar" id="navbar" style="display: none;">
-                <button class="active" onclick="switchTab('chats')">Chats</button>
-                <button onclick="switchTab('contacts')">Contacts</button>
-                <button id="admin-tab-btn" onclick="switchTab('admin')" style="display: none;">Admin Panel</button>
-            </div>
+            <h3>Chat with Akram</h3>
+            <button onclick="logout()" style="background: #d9534f; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         </div>
-
-        <!-- Login / OTP Screen -->
-        <div id="auth-screen" class="screen-section active" style="display: flex;">
-            <div class="auth-box">
-                <h3>Login with OTP & Approval</h3>
-                <p style="font-size: 0.8rem; color: #666;">Pehle apna mobile number daal kar OTP verify karein.</p>
-                
-                <!-- Step 1: Phone Input -->
-                <div id="step-phone" style="display: flex; flex-direction: column; gap: 10px;">
-                    <input type="text" id="userPhone" class="auth-input" placeholder="Mobile Number (e.g. 9876543210)">
-                    <button class="auth-btn" onclick="sendOTP()">OTP Bhejein</button>
-                </div>
-
-                <!-- Step 2: OTP Input (Hidden initially) -->
-                <div id="step-otp" style="display: none; flex-direction: column; gap: 10px;">
-                    <input type="text" id="userOtp" class="auth-input" placeholder="4-digit OTP enter karein">
-                    <button class="auth-btn" onclick="verifyOTPAndRequest()">Verify OTP & Request Bhejein</button>
-                </div>
-
-                <p id="auth-status" style="font-size: 0.8rem; color: #d35400; text-align: center;"></p>
-            </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received">नमस्ते अकरम! आपकी चैट ऐप सफलता से लाइव हो चुकी है।</div>
         </div>
-
-        <!-- Chats Section -->
-        <div id="chats-screen" class="screen-section">
-            <div class="chat-messages" id="chat-messages-box">
-                <div class="message incoming">
-                    <div>Welcome to Akram Secure Messenger!</div>
-                </div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="messageInput" class="chat-input" placeholder="Type message..." onkeypress="handleKeyPress(event)">
-                <button class="send-btn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-
-        <!-- Contacts Section -->
-        <div id="contacts-screen" class="screen-section">
-            <p>Approved Users Directory - Secure Chat Active.</p>
-        </div>
-
-        <!-- Admin Panel Section -->
-        <div id="admin-screen" class="screen-section">
-            <div class="admin-panel">
-                <h3>Admin Control Panel (Akram)</h3>
-                <p style="font-size: 0.75rem; color: #555;">Live Login Requests:</p>
-                <div id="admin-requests-list" style="overflow-y: auto; max-height: 250px; display: flex; flex-direction: column; gap: 8px;">
-                    <p style="font-size: 0.8rem;">Loading requests...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Legal Disclaimer Footer -->
-        <div class="legal-footer">
-            Disclaimer: Secure App. Misuse par user block kar diya jayega.
+        <div class="chat-input-area">
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
+            <button onclick="sendMessage()">➤</button>
         </div>
     </div>
 
     <script>
+        // TODO: अपने Firebase Project की असली Config यहाँ भरें (अगर पुरानी वाली नहीं है तो)
         const firebaseConfig = {
-            databaseURL: "https://akram-chat-default-rtdb.firebaseio.com/"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
-        
+
+        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const db = firebase.database();
 
-        let generatedOtp = "";
-        let pendingPhone = "";
+        const auth = firebase.auth();
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.screen-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.sub-nav-bar button').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabName + '-screen').classList.add('active');
-            if(event && event.target) event.target.classList.add('active');
-        }
+        // reCAPTCHA Verifier Setup
+        window.onload = function() {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'normal',
+                'callback': (response) => {
+                    // reCAPTCHA solved, allow send otp
+                }
+            }, auth);
+            window.recaptchaVerifier.render();
+        };
 
         function sendOTP() {
-            const phone = document.getElementById('userPhone').value.trim();
-            const statusText = document.getElementById('auth-status');
-            
-            if(phone.length < 10) {
-                alert("Kripya sahi 10 digit ka mobile number dalein!");
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const statusMsg = document.getElementById('statusMsg');
+
+            if (!phoneNumber) {
+                statusMsg.innerText = "कृपया सही मोबाइल नंबर (+91...) दर्ज करें!";
                 return;
             }
 
-            pendingPhone = phone;
-            // Generate a 4-digit random OTP
-            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            // Display OTP on screen for testing ease (or simulated SMS)
-            alert("Aapka OTP code hai: " + generatedOtp);
-            statusText.innerText = "OTP bhej diya gaya hai. Kripya niche darj karein.";
-            
-            document.getElementById('step-phone').style.display = 'none';
-            document.getElementById('step-otp').style.display = 'flex';
+            statusMsg.innerText = "OTP भेजा जा रहा है, कृपया प्रतीक्षा करें...";
+            const appVerifier = window.recaptchaVerifier;
+
+            auth.signInWithPhoneNumber(phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    statusMsg.innerText = "OTP आपके नंबर पर भेज दिया गया है!";
+                    document.getElementById('otpSection').classList.remove('hidden');
+                    document.getElementById('sendOtpBtn').classList.add('hidden');
+                }).catch((error) => {
+                    console.error(error);
+                    statusMsg.innerText = "OTP भेजने में त्रुटि: " + error.message;
+                });
         }
 
-        function verifyOTPAndRequest() {
-            const enteredOtp = document.getElementById('userOtp').value.trim();
-            const statusText = document.getElementById('auth-status');
+        function verifyOTP() {
+            const code = document.getElementById('otpCode').value.trim();
+            const statusMsg = document.getElementById('statusMsg');
 
-            if(enteredOtp !== generatedOtp) {
-                alert("Galat OTP! Kripya dobara koshish karein.");
+            if (!code) {
+                statusMsg.innerText = "कृपया OTP दर्ज करें!";
                 return;
             }
 
-            // AGAR ADMIN NUMBER HAI TOH DIRECT ACCESS
-            if(pendingPhone === "7283988065") {
-                alert("OTP Verified! Welcome Admin Akram.");
-                allowAccess(true);
-                return;
-            }
-
-            // DHOOSRE USER KE LIYE OTP VERIFIED -> AB ADMIN APPROVAL REQUEST JAYEGI
-            statusText.innerText = "OTP Verified! Admin (Akram) ki manzoori ke liye request bhej di gayi hai...";
-            document.getElementById('step-otp').style.display = 'none';
-
-            const userKey = pendingPhone.replace(/[^0-9]/g, '');
-
-            db.ref('loginRequests/' + userKey).set({
-                phone: pendingPhone,
-                status: 'pending',
-                time: new Date().toLocaleTimeString()
+            window.confirmationResult.confirm(code).then((result) => {
+                // User signed in successfully.
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+            }).catch((error) => {
+                statusMsg.innerText = "गलत OTP! कृपया दोबारा प्रयास करें।";
             });
-
-            db.ref('loginRequests/' + userKey + '/status').on('value', (snapshot) => {
-                const val = snapshot.val();
-                if(val === 'approved') {
-                    alert("Admin ne aapki request approve kar di hai!");
-                    allowAccess(false);
-                } else if(val === 'rejected') {
-                    statusText.innerText = "Aapki request Admin dwara reject ya ban kar di gayi hai.";
-                }
-            });
-        }
-
-        function loadAdminRequests() {
-            const adminList = document.getElementById('admin-requests-list');
-            db.ref('loginRequests').on('value', (snapshot) => {
-                adminList.innerHTML = '';
-                const data = snapshot.val();
-                if(!data) {
-                    adminList.innerHTML = '<p style="font-size: 0.8rem;">Koi pending request nahi hai.</p>';
-                    return;
-                }
-
-                for(let key in data) {
-                    let user = data[key];
-                    if(user.status === 'pending') {
-                        const reqDiv = document.createElement('div');
-                        reqDiv.className = 'admin-controls-box';
-                        reqDiv.innerHTML = `
-                            <b>User Number:</b> ${user.phone}<br>
-                            <button style="background:green; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="approveUser('${key}')">Accept</button>
-                            <button style="background:red; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="rejectUser('${key}')">Reject / Ban</button>
-                        `;
-                        adminList.appendChild(reqDiv);
-                    }
-                }
-            });
-        }
-
-        function approveUser(userKey) {
-            db.ref('loginRequests/' + userKey).update({ status: 'approved' });
-            alert("User ko approve kar diya gaya hai!");
-        }
-
-        function rejectUser(userKey) {
-            db.ref('loginRequests/' + userKey).update({ status: 'rejected' });
-            alert("User ko reject/ban kar diya gaya hai!");
-        }
-
-        function allowAccess(isAdmin) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('chats-screen').classList.add('active');
-            document.getElementById('navbar').style.display = 'flex';
-            
-            if(isAdmin) {
-                document.getElementById('header-title').innerText = "Admin Dashboard - Akram";
-                document.getElementById('admin-tab-btn').style.display = 'block';
-                loadAdminRequests();
-            }
         }
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
-            const messageText = input.value.trim();
-            if(messageText === '') return;
+            const text = input.value.trim();
+            if(!text) return;
 
-            const chatScreen = document.getElementById('chat-messages-box');
-            const newMessage = document.createElement('div');
-            newMessage.className = 'message outgoing';
-            newMessage.innerHTML = `
-                <div>${messageText}</div>
-                <div class="msg-actions">
-                    <button class="report-btn" onclick="reportUser()">Report</button>
-                    <button class="block-btn" onclick="blockUser(this)">Remove</button>
-                </div>
-            `;
-            chatScreen.appendChild(newMessage);
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent';
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
             input.value = '';
-            chatScreen.scrollTop = chatScreen.scrollHeight;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+        function checkEnter(e) {
+            if(e.key === 'Enter') sendMessage();
         }
 
-        function reportUser() {
-            alert("Report darj ki gayi hai.");
-        }
-
-        function blockUser(btn) {
-            if(confirm("Kya aap is message ko hataana chahte hain?")) {
-                btn.closest('.message').remove();
-            }
-        }
-
-        function clearChat() {
-            if(confirm("Saari chats clear karni hain?")) {
-                document.getElementById('chat-messages-box').innerHTML = '';
-            }
+        function logout() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
         }
     </script>
 </body>
 </html>
-            
