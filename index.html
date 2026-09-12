@@ -72,7 +72,7 @@
             <div class="sub-nav-bar" id="navbar" style="display: none;">
                 <button class="active" onclick="switchTab('chats')">Chats</button>
                 <button onclick="switchTab('contacts')">Contacts</button>
-                <button onclick="switchTab('admin')">Admin Panel</button>
+                <button id="admin-tab-btn" onclick="switchTab('admin')" style="display: none;">Admin Panel</button>
             </div>
         </div>
 
@@ -110,9 +110,9 @@
         <div id="admin-screen" class="screen-section">
             <div class="admin-panel">
                 <h3>Admin Control Panel (Akram)</h3>
-                <p style="font-size: 0.75rem; color: #555;">Yahan aapko visitor aur login requests dikhengi:</p>
+                <p style="font-size: 0.75rem; color: #555;">Live Login Requests:</p>
                 <div id="admin-requests-list" style="overflow-y: auto; max-height: 250px; display: flex; flex-direction: column; gap: 8px;">
-                    <p style="font-size: 0.8rem;">Koi pending request nahi hai.</p>
+                    <p style="font-size: 0.8rem;">Loading requests...</p>
                 </div>
             </div>
         </div>
@@ -124,6 +124,19 @@
     </div>
 
     <script>
+        // FIREBASE CONFIGURATION (Aapke project ka database link yahan hai)
+        const firebaseConfig = {
+            databaseURL: "https://akram-chat-default-rtdb.firebaseio.com/" // Agar aapka koi aur Firebase URL ho toh yahan change kar sakte hain
+        };
+        
+        // Initialize Firebase safely if not already initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let currentPhone = "";
+
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
         }
@@ -136,7 +149,7 @@
             if(event && event.target) event.target.classList.add('active');
         }
 
-        // Login Request System simulating Admin Approval
+        // Login Request send to Firebase Database
         function requestLogin() {
             const phone = document.getElementById('userPhone').value.trim();
             const statusText = document.getElementById('auth-status');
@@ -146,58 +159,86 @@
                 return;
             }
 
-            // Visitor data tracking simulated log
-            console.log("New Visitor/Login Attempt from Number:", phone, "Time:", new Date());
+            currentPhone = phone;
+            statusText.innerText = "Request Firebase par bhej di gayi hai. Manzoori ka intezaar hai...";
 
-            // Check if user is Akram (Admin simulation using a master number or just local control)
-            if(phone === "7283988065") { // Aapka number as Admin
-                alert("Welcome Admin Akram!");
-                allowAccess(true);
-                return;
-            }
+            // Clean phone number for database key (removing special chars if any)
+            const userKey = phone.replace(/[^0-9]/g, '');
 
-            statusText.innerText = "Request bhej di gayi hai. Admin (Akram) ki manzoori ka intezaar hai...";
-            
-            // Adding to Admin simulated list view
-            setTimeout(() => {
-                const adminList = document.getElementById('admin-requests-list');
-                if(adminList.innerHTML.includes("Koi pending request nahi hai.")) {
-                    adminList.innerHTML = '';
+            // Save/Update request in Firebase database under 'users'
+            db.ref('loginRequests/' + userKey).set({
+                phone: phone,
+                status: 'pending',
+                time: new Date().toLocaleTimeString()
+            });
+
+            // Listen for status changes (Real-time approval listener)
+            db.ref('loginRequests/' + userKey + '/status').on('value', (snapshot) => {
+                const val = snapshot.val();
+                if(val === 'approved') {
+                    alert("Aapka login approve ho gaya hai!");
+                    allowAccess(phone === "7283988065");
+                } else if(val === 'rejected') {
+                    statusText.innerText = "Aapki request Admin dwara reject ya ban kar di gayi hai.";
                 }
-                
-                const reqDiv = document.createElement('div');
-                reqDiv.className = 'admin-controls-box';
-                reqDiv.innerHTML = `
-                    <b>User:</b> ${phone}<br>
-                    <button style="background:green; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="approveUser('${phone}', this)">Accept</button>
-                    <button style="background:red; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="rejectUser(this)">Reject / Ban</button>
-                `;
-                adminList.appendChild(reqDiv);
-            }, 1000);
+            });
         }
 
-        function approveUser(phone, btn) {
-            alert("User " + phone + " ko approve kar diya gaya hai!");
-            btn.parentElement.innerHTML = "<b style='color:green;'>Approved</b>";
-            // Agar yahi current user hai toh ise access mil jayega
-            if(document.getElementById('userPhone').value.trim() === phone) {
-                allowAccess(false);
-            }
+        // Admin panel loads requests from Firebase in Real-time
+        function loadAdminRequests() {
+            const adminList = document.getElementById('admin-requests-list');
+            db.ref('loginRequests').on('value', (snapshot) => {
+                adminList.innerHTML = '';
+                const data = snapshot.val();
+                if(!data) {
+                    adminList.innerHTML = '<p style="font-size: 0.8rem;">Koi pending request nahi hai.</p>';
+                    return;
+                }
+
+                for(let key in data) {
+                    let user = data[key];
+                    if(user.status === 'pending') {
+                        const reqDiv = document.createElement('div');
+                        reqDiv.className = 'admin-controls-box';
+                        reqDiv.innerHTML = `
+                            <b>User Number:</b> ${user.phone}<br>
+                            <button style="background:green; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="approveUser('${key}')">Accept</button>
+                            <button style="background:red; color:white; border:none; padding:4px 8px; margin-top:4px; cursor:pointer;" onclick="rejectUser('${key}')">Reject / Ban</button>
+                        `;
+                        adminList.appendChild(reqDiv);
+                    }
+                }
+            });
         }
 
-        function rejectUser(btn) {
-            alert("User ko block/reject kar diya gaya hai!");
-            btn.parentElement.remove();
+        function approveUser(userKey) {
+            db.ref('loginRequests/' + userKey).update({ status: 'approved' });
+            alert("User ko approve kar diya gaya hai!");
+        }
+
+        function rejectUser(userKey) {
+            db.ref('loginRequests/' + userKey).update({ status: 'rejected' });
+            alert("User ko reject/ban kar diya gaya hai!");
         }
 
         function allowAccess(isAdmin) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('chats-screen').classList.add('active');
             document.getElementById('navbar').style.display = 'flex';
+            
             if(isAdmin) {
                 document.getElementById('header-title').innerText = "Admin Dashboard - Akram";
+                document.getElementById('admin-tab-btn').style.display = 'block';
+                loadAdminRequests(); // Load live requests for admin
             }
         }
+
+        // Check if admin is pre-logging in with master number
+        document.getElementById('userPhone').addEventListener('input', function() {
+            if(this.value.trim() === "7283988065") {
+                // Auto setup admin bypass option if needed
+            }
+        });
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -226,13 +267,12 @@
         }
 
         function reportUser() {
-            alert("Report darj ki gayi hai. Admin is par action lega.");
+            alert("Report darj ki gayi hai.");
         }
 
         function blockUser(btn) {
-            if(confirm("Kya aap is message/user ko hataana chahte hain?")) {
+            if(confirm("Kya aap is message ko hataana chahte hain?")) {
                 btn.closest('.message').remove();
-                alert("User activity ko hata diya gaya hai.");
             }
         }
 
@@ -244,5 +284,3 @@
     </script>
 </body>
 </html>
-
-
