@@ -40,6 +40,9 @@
         
         <input type="text" id="phoneNumber" placeholder="+917283988065">
         <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        
+        <!-- Invisible Recaptcha Element -->
+        <div id="recaptcha-container"></div>
 
         <div id="otpSection" class="hidden">
             <input type="text" id="otpCode" placeholder="6-digit OTP enter karein">
@@ -80,8 +83,16 @@
         const auth = firebase.auth();
         auth.useDeviceLanguage();
 
-        // Dummy verifier to bypass reCAPTCHA UI error on mobile
-        window.recaptchaVerifier = new firebase.auth.AuthCredential(); // fallback bypass
+        // Initialize Invisible Recaptcha properly bound to the button
+        window.onload = function() {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved, allow sendOTP
+                }
+            }, auth);
+            window.recaptchaVerifier.render();
+        };
 
         function sendOTP() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
@@ -93,13 +104,9 @@
             }
 
             statusMsg.innerText = "OTP भेजा जा रहा है, प्रतीक्षा करें...";
+            const appVerifier = window.recaptchaVerifier;
 
-            // Using dummy container or invisible flow without rendering box
-            const plainVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', {
-                'size': 'invisible'
-            }, auth);
-
-            auth.signInWithPhoneNumber(phoneNumber, plainVerifier)
+            auth.signInWithPhoneNumber(phoneNumber, appVerifier)
                 .then((confirmationResult) => {
                     window.confirmationResult = confirmationResult;
                     statusMsg.innerText = "OTP आपके नंबर पर भेज दिया गया है!";
@@ -108,6 +115,11 @@
                 }).catch((error) => {
                     console.error(error);
                     statusMsg.innerText = "OTP भेजने में त्रुटि: " + error.message;
+                    if (window.recaptchaVerifier) {
+                        window.recaptchaVerifier.render().then(widgetId => {
+                            grecaptcha.reset(widgetId);
+                        });
+                    }
                 });
         }
 
