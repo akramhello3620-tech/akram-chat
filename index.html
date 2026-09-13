@@ -13,12 +13,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .login-container, .chat-container { width: 100%; max-width: 450px; background: #fff; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; }
-        .login-container h2 { margin-bottom: 20px; color: #075e54; }
+        .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; overflow-y: auto; }
+        .login-container h2 { margin-bottom: 15px; color: #075e54; }
         .login-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-bottom: 15px; }
         .login-container button:hover { background: #128c7e; }
         
+        #recaptcha-container { display: flex; justify-content: center; margin-bottom: 15px; }
+
         /* Chat UI */
         .chat-header { background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
@@ -36,12 +38,14 @@
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
         <h2>Akram Chat - Secure Login</h2>
-        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">मोबाइल नंबर दर्ज करें और OTP प्राप्त करें</p>
+        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">मोबाइल नंबर दर्ज करें और असली OTP प्राप्त करें</p>
         
         <input type="text" id="phoneNumber" placeholder="+917383988065">
-        <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
         
+        <!-- Visible reCAPTCHA Box -->
         <div id="recaptcha-container"></div>
+
+        <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
 
         <div id="otpSection" class="hidden">
             <input type="text" id="otpCode" placeholder="6-digit OTP enter karein">
@@ -81,15 +85,16 @@
 
         const auth = firebase.auth();
 
-        // Safely initialize RecaptchaVerifier
-        window.addEventListener('DOMContentLoaded', () => {
+        // Initialize Normal (Visible) RecaptchaVerifier
+        window.onload = function() {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                'size': 'invisible',
+                'size': 'normal',
                 'callback': (response) => {
-                    // reCAPTCHA solved
+                    // reCAPTCHA solved, enable send otp
                 }
             }, auth);
-        });
+            window.recaptchaVerifier.render();
+        };
 
         function sendOTP() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
@@ -109,9 +114,12 @@
                     statusMsg.innerText = "OTP आपके नंबर पर भेज दिया गया है!";
                     document.getElementById('otpSection').classList.remove('hidden');
                     document.getElementById('sendOtpBtn').classList.add('hidden');
+                    document.getElementById('recaptcha-container').classList.add('hidden');
                 }).catch((error) => {
                     console.error(error);
                     statusMsg.innerText = "OTP भेजने में त्रुटि: " + error.message;
+                    // Reset recaptcha if failed
+                    window.recaptchaVerifier.render();
                 });
         }
 
