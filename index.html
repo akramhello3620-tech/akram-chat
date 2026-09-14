@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akram Chat - Secure & Private</title>
+    <title>Akram Chatting - Developed by Akram</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -11,22 +11,30 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background: #121b22; color: #e1e8ed; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        .app-container { width: 100%; max-width: 450px; background: #111b21; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        html, body { width: 100%; height: 100%; background: #121b22; color: #e1e8ed; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        
+        .app-container { width: 100%; max-width: 450px; background: #111b21; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
         /* Login Screen */
-        .login-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 30px; justify-content: center; align-items: center; text-align: center; display: flex; flex-direction: column; background: #111b21; color: #e1e8ed; z-index: 300; }
-        .login-container h2 { margin-bottom: 10px; color: #00a884; font-size: 26px; }
-        .login-container p { margin-bottom: 25px; color: #8696a0; font-size: 14px; }
+        .login-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 30px; justify-content: center; align-items: center; text-align: center; display: flex; flex-direction: column; background: #111b21; color: #e1e8ed; z-index: 500; }
+        .login-container h2 { margin-bottom: 5px; color: #00a884; font-size: 28px; }
+        .developer-tag { font-size: 13px; color: #00a884; margin-bottom: 25px; font-weight: bold; letter-spacing: 1.5px; background: #1f2c34; padding: 6px 15px; border-radius: 20px; border: 1px solid #2a3942; }
         .login-container input { width: 100%; padding: 14px; margin-bottom: 15px; background: #222d34; border: 1px solid #2a3942; border-radius: 8px; font-size: 16px; color: white; outline: none; }
         .login-container button { width: 100%; padding: 14px; background: #00a884; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .login-container button:hover { background: #008f72; }
 
         /* App Header */
-        .wa-header { background: #1f2c34; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 20px; font-weight: bold; flex-shrink: 0; }
-        
+        .wa-header { background: #1f2c34; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 18px; font-weight: bold; flex-shrink: 0; height: 60px; }
+        .dev-badge-header { font-size: 10px; color: #00a884; display: block; font-weight: normal; }
+
+        /* Search Bar Area */
+        .search-container { padding: 10px; background: #111b21; border-bottom: 1px solid #222d34; display: flex; gap: 8px; }
+        .search-container input { flex: 1; padding: 8px 12px; background: #202c33; border: none; border-radius: 20px; color: white; outline: none; font-size: 14px; }
+        .search-container button { background: #00a884; color: white; border: none; padding: 0 15px; border-radius: 20px; cursor: pointer; font-size: 13px; }
+
         /* Chat List Screen */
-        .chat-list { flex: 1; overflow-y: auto; background: #111b21; }
+        #homeScreen { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        .chat-list { flex: 1; overflow-y: auto; background: #111b21; width: 100%; }
         .chat-item { display: flex; align-items: center; padding: 12px 15px; gap: 15px; cursor: pointer; border-bottom: 1px solid #222d34; }
         .chat-item:hover { background: #202c33; }
         .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; overflow: hidden; flex-shrink: 0; }
@@ -38,13 +46,13 @@
         .chat-last-msg { font-size: 13px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Bottom Nav */
-        .wa-nav { background: #1f2c34; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222d34; flex-shrink: 0; }
+        .wa-nav { background: #1f2c34; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222d34; flex-shrink: 0; height: 55px; }
         .nav-item { color: #8696a0; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
         .nav-item.active { color: #00a884; font-weight: bold; }
 
         /* Chat Room Screen */
-        .chat-room { display: flex; flex-direction: column; height: 100%; background: #0b141a; position: absolute; top: 0; left: 0; width: 100%; z-index: 100; }
-        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-shrink: 0; }
+        #chatRoomScreen { display: flex; flex-direction: column; height: 100%; width: 100%; background: #0b141a; position: absolute; top: 0; left: 0; z-index: 200; }
+        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-shrink: 0; height: 60px; }
         .room-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
         .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; flex-shrink: 0; }
@@ -52,7 +60,7 @@
         .room-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .room-bio { font-size: 11px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; }
+        .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; width: 100%; }
         .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
         .message.sent { background: #005c4b; color: #e1e8ed; align-self: flex-end; }
         .message.received { background: #202c33; color: #e1e8ed; align-self: flex-start; }
@@ -60,13 +68,13 @@
         .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
         .double-tick { color: #53bdeb; font-weight: bold; font-size: 12px; }
 
-        .chat-input-area { padding: 10px; background: #1f2c34; display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .chat-input-area { background: #1f2c34; padding: 10px 15px; display: flex; gap: 8px; align-items: center; flex-shrink: 0; height: 65px; width: 100%; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
         .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; flex-shrink: 0; }
         .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
 
         /* Profile Modal */
-        .profile-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 200; display: flex; flex-direction: column; padding: 20px; }
+        .profile-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 300; display: flex; flex-direction: column; padding: 20px; }
         .profile-header { display: flex; align-items: center; gap: 15px; color: white; font-size: 18px; margin-bottom: 30px; }
         .profile-pic-container { text-align: center; margin-bottom: 30px; }
         .profile-big-avatar { width: 120px; height: 120px; border-radius: 50%; background: #00a884; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; overflow: hidden; position: relative; }
@@ -82,13 +90,14 @@
 
     <div class="app-container">
 
-        <!-- Secure Login Screen (First view for any visitor) -->
+        <!-- Login Screen (Open for Anyone) -->
         <div id="loginScreen" class="login-container">
-            <h2>Akram Chat</h2>
-            <p>सुरक्षित चैट - केवल अधिकृत उपयोगकर्ताओं के लिए</p>
-            <input type="text" id="phoneNumber" placeholder="मोबाइल नंबर दर्ज करें (जैसे +91...)">
+            <h2>Akram Chatting</h2>
+            <div class="developer-tag">⚡ DEVELOPED BY AKRAM ⚡</div>
+            <p>कोई भी नंबर दर्ज करके चैट शुरू करें</p>
+            <input type="text" id="phoneNumber" placeholder="अपना मोबाइल नंबर दर्ज करें">
             <div id="pinSection" class="hidden">
-                <input type="password" id="secretPin" placeholder="अपना सीक्रेट पिन (PIN) दर्ज करें">
+                <input type="password" id="secretPin" placeholder="सीक्रेट पिन (1234) दर्ज करें">
                 <button onclick="verifyLogin()">Login to Chat</button>
             </div>
             <button id="nextBtn" onclick="checkNumber()">Next</button>
@@ -96,13 +105,22 @@
         </div>
 
         <!-- Chat List Screen -->
-        <div id="homeScreen" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
+        <div id="homeScreen" class="hidden">
             <div class="wa-header">
-                <span>Akram Chat</span>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <span onclick="openProfile()" title="Profile & Bio" style="font-size: 20px; cursor: pointer;">👤</span>
-                    <span onclick="logout()" title="Logout" style="font-size: 13px; cursor: pointer; background: #d9534f; padding: 4px 8px; border-radius: 4px; color: white;">Logout</span>
+                <div>
+                    Akram Chatting
+                    <span class="dev-badge-header">Developed by Akram</span>
                 </div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <span onclick="openProfile()" title="Profile & DP" style="font-size: 20px; cursor: pointer;">👤</span>
+                    <span onclick="logout()" title="Logout" style="font-size: 12px; cursor: pointer; background: #d9534f; padding: 4px 8px; border-radius: 4px; color: white;">Logout</span>
+                </div>
+            </div>
+
+            <!-- Search Bar to find/start chat with anyone -->
+            <div class="search-container">
+                <input type="text" id="searchUserInput" placeholder="दोस्त का नाम या नंबर सर्च करें...">
+                <button onclick="searchAndOpenChat()">चैट करें</button>
             </div>
 
             <div class="chat-list" id="chatListContainer"></div>
@@ -119,14 +137,14 @@
         <div id="profileScreen" class="profile-modal hidden">
             <div class="profile-header">
                 <button class="back-btn" onclick="closeProfile()">❮</button>
-                <span>प्रोफाइल और बायो सेटिंग्स</span>
+                <span>प्रोफाइल, डीपी और बायो</span>
             </div>
             <div class="profile-pic-container">
                 <div class="profile-big-avatar" id="myAvatarPreview">
                     <span>अ</span>
                 </div>
                 <input type="file" id="dpInput" accept="image/*" style="display: none;" onchange="updateProfilePic(event)">
-                <button onclick="document.getElementById('dpInput').click()" style="background: #00a884; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px;">डीडीपी (DP) बदलें</button>
+                <button onclick="document.getElementById('dpInput').click()" style="background: #00a884; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px;">अपनी डीपी (DP) बदलें</button>
             </div>
             <div class="profile-input-group">
                 <label>आपका नाम</label>
@@ -134,7 +152,7 @@
             </div>
             <div class="profile-input-group">
                 <label>आपका बायो (Bio / About)</label>
-                <input type="text" id="myBioInput" placeholder="जैसे: Available / Busy at Shop">
+                <input type="text" id="myBioInput" placeholder="जैसे: Available / Busy">
             </div>
             <button onclick="saveProfile()" style="width: 100%; padding: 14px; background: #00a884; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: bold;">सेव करें</button>
         </div>
@@ -146,7 +164,7 @@
                     <button class="back-btn" onclick="closeChat()">❮</button>
                     <div class="room-avatar" id="roomAvatar">त</div>
                     <div style="min-width: 0;">
-                        <div class="room-title" id="roomTitle">तय्यब भाई</div>
+                        <div class="room-title" id="roomTitle">दोस्त</div>
                         <div class="room-bio" id="roomBio">Available</div>
                     </div>
                 </div>
@@ -182,16 +200,9 @@
 
         const db = firebase.database();
 
-        // केवल अधिकृत प्राइवेट कॉन्टेक्ट्स की लिस्ट
-        const trustedContacts = {
-            "+917283988065": { name: "अकरम", bio: "Busy at A to Z Novelty", roomId: "akram_tayyab" },
-            "+919876543210": { name: "तय्यब भाई", bio: "Available", roomId: "akram_tayyab" },
-            "+919123456789": { name: "जावेद भाई", bio: "At Work", roomId: "akram_javed" }
-        };
-
         const SECRET_PIN = "1234"; 
         let currentPhone = "";
-        let currentUser = {};
+        let currentUser = { name: "User", bio: "Available" };
         let currentChatRoom = "";
         let messageListener = null;
 
@@ -201,13 +212,12 @@
             }
 
             const savedPhone = localStorage.getItem("akram_chat_user");
-            if (savedPhone && trustedContacts[savedPhone]) {
+            if (savedPhone) {
                 currentPhone = savedPhone;
-                currentUser = trustedContacts[savedPhone];
                 loadUserProfileFromStorage();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                renderTrustedContactsList();
+                loadUserChats();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -217,62 +227,52 @@
             const phone = document.getElementById('phoneNumber').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             if (!phone) { statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!"; return; }
-            if (trustedContacts[phone]) {
-                statusMsg.innerText = "";
-                document.getElementById('phoneNumber').classList.add('hidden');
-                document.getElementById('nextBtn').classList.add('hidden');
-                document.getElementById('pinSection').classList.remove('hidden');
-            } else {
-                statusMsg.innerText = "यह नंबर अधिकृत नहीं है! बाहरी व्यक्ति प्रवेश नहीं कर सकता।";
-            }
+            
+            statusMsg.innerText = "";
+            document.getElementById('phoneNumber').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('pinSection').classList.remove('hidden');
         }
 
         function verifyLogin() {
             const pin = document.getElementById('secretPin').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const phone = document.getElementById('phoneNumber').value.trim();
+            
             if (pin === SECRET_PIN) {
                 localStorage.setItem("akram_chat_user", phone);
                 currentPhone = phone;
-                currentUser = trustedContacts[phone];
+                
+                if(!localStorage.getItem("name_" + currentPhone)) {
+                    localStorage.setItem("name_" + currentPhone, "User " + phone.slice(-4));
+                }
                 loadUserProfileFromStorage();
+
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                renderTrustedContactsList();
+                loadUserChats();
             } else {
-                statusMsg.innerText = "गलत पिन (PIN)!";
+                statusMsg.innerText = "गलत पिन! (डिफ़ॉल्ट पिन: 1234)";
             }
         }
 
-        function renderTrustedContactsList() {
+        function searchAndOpenChat() {
+            const query = document.getElementById('searchUserInput').value.trim();
+            if(!query) {
+                alert("कृपया दोस्त का नाम या नंबर दर्ज करें!");
+                return;
+            }
+
+            let roomId = "private_" + [currentPhone, query].sort().join("_");
+            openChat(roomId, query, "Private Chat");
+        }
+
+        function loadUserChats() {
             const container = document.getElementById('chatListContainer');
-            container.innerHTML = '';
-
-            for (let ph in trustedContacts) {
-                if (ph !== currentPhone) {
-                    const contact = trustedContacts[ph];
-                    const savedDP = localStorage.getItem("dp_" + ph) || "";
-                    
-                    const item = document.createElement('div');
-                    item.className = 'chat-item';
-                    item.onclick = () => openChat(contact.roomId, contact.name, contact.bio, savedDP);
-                    
-                    item.innerHTML = `
-                        <div class="chat-avatar">${savedDP ? `<img src="${savedDP}">` : contact.name.charAt(0)}</div>
-                        <div class="chat-info">
-                            <div class="chat-name-time">
-                                <span class="chat-name">${contact.name}</span>
-                                <span class="chat-time">Online</span>
-                            </div>
-                            <div class="chat-last-msg">${contact.bio}</div>
-                        </div>
-                    `;
-                    container.appendChild(item);
-                }
-            }
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8696a0; font-size: 14px;">ऊपर सर्च बार में किसी का भी नाम या नंबर लिखकर तुरंत चैट शुरू करें!</div>';
         }
 
-        function openChat(roomId, roomName, roomBio, roomAvatarData) {
+        function openChat(roomId, roomName, roomBio) {
             currentChatRoom = roomId;
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('chatRoomScreen').classList.remove('hidden');
@@ -280,11 +280,7 @@
             document.getElementById('roomBio').innerText = roomBio;
             
             const avatarDiv = document.getElementById('roomAvatar');
-            if (roomAvatarData) {
-                avatarDiv.innerHTML = `<img src="${roomAvatarData}">`;
-            } else {
-                avatarDiv.innerText = roomName.charAt(0);
-            }
+            avatarDiv.innerText = roomName.charAt(0).toUpperCase();
             
             listenToMessages();
         }
@@ -295,7 +291,7 @@
             }
             document.getElementById('chatRoomScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            renderTrustedContactsList();
+            loadUserChats();
         }
 
         function openProfile() {
@@ -316,7 +312,7 @@
         function closeProfile() {
             document.getElementById('profileScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            renderTrustedContactsList();
+            loadUserChats();
         }
 
         function updateProfilePic(event) {
@@ -336,7 +332,7 @@
             const newBio = document.getElementById('myBioInput').value.trim();
             if (newName) currentUser.name = newName;
             if (newBio) currentUser.bio = newBio;
-            trustedContacts[currentPhone] = currentUser;
+            
             localStorage.setItem("name_" + currentPhone, currentUser.name);
             localStorage.setItem("bio_" + currentPhone, currentUser.bio);
             closeProfile();
@@ -445,8 +441,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
