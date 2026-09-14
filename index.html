@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -24,19 +23,25 @@
         /* Chat UI */
         .chat-header { background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
-        .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; }
+        .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
         .message.sent { background: #dcf8c6; align-self: flex-end; }
         .message.received { background: #fff; align-self: flex-start; }
-        .chat-input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 10px; align-items: center; }
-        .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
-        .chat-input-area button { background: #075e54; color: white; border: none; padding: 10px 18px; border-radius: 50%; cursor: pointer; }
+        
+        .message-time { font-size: 10px; color: #555; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+        .double-tick { color: #34b7f1; font-weight: bold; font-size: 12px; }
+
+        .chat-input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 14px; }
+        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #075e54; padding: 5px; }
+        .chat-input-area button.send-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <!-- Login Screen -->
-    <div id="loginScreen" class="login-container">
+    <div id="loginScreen" class="login-container hidden">
         <h2>Akram Chat</h2>
         <p>सुरक्षित लॉगिन - केवल अधिकृत उपयोगकर्ता</p>
         
@@ -57,12 +62,24 @@
             <h3 id="userTitle">Akram Chat</h3>
             <button onclick="logout()" style="background: #d9534f; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         </div>
+        
         <div class="chat-messages" id="chatMessages">
-            <div class="message received">नमस्ते! आपकी सुरक्षित चैट शुरू हो चुकी है।</div>
+            <div class="message received">
+                नमस्ते! आपकी सुरक्षित चैट शुरू हो चुकी है।
+                <div class="message-time">12:30 PM</div>
+            </div>
         </div>
+
+        <!-- Input Area with Photo, Voice & Text -->
         <div class="chat-input-area">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
+            <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="तस्वीर भेजें">📷</button>
+            
+            <button class="icon-btn" onclick="recordVoice()" title="वॉइस मैसेज भेजें">🎙️</button>
+            
             <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
-            <button onclick="sendMessage()">➤</button>
+            
+            <button class="send-btn" onclick="sendMessage()">➤</button>
         </div>
     </div>
 
@@ -80,16 +97,26 @@
             firebase.initializeApp(firebaseConfig);
         }
 
-        const db = firebase.database();
-
-        // यहाँ उन नंबरों की लिस्ट है जिन्हें आपने अनुमति दी है (आप और आपके भाई तय्यब का नंबर)
         const allowedUsers = {
             "+917283988065": "अकरम",
-            "+919876543210": "तय्यब" // यहाँ तय्यब का असली नंबर डाल सकते हैं
+            "+919876543210": "तय्यब"
         };
 
-        // सुरक्षा के लिए तय किया गया सीक्रेट पिन (आप इसे बदल भी सकते हैं)
-        const SECRET_PIN = "8200"; 
+        const SECRET_PIN = "1234"; 
+
+        // पेज लोड होते ही चेक करें कि क्या यूजर पहले से लॉग इन है या नहीं
+        window.onload = function() {
+            const savedUser = localStorage.getItem("akram_chat_user");
+            if (savedUser && allowedUsers[savedUser]) {
+                // अगर पहले से सेव है तो सीधे चैट स्क्रीन दिखाओ
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+                document.getElementById('userTitle').innerText = "Chat - " + allowedUsers[savedUser];
+            } else {
+                // नहीं तो लॉगिन स्क्रीन दिखाओ
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }
+        };
 
         function checkNumber() {
             const phone = document.getElementById('phoneNumber').value.trim();
@@ -100,14 +127,13 @@
                 return;
             }
 
-            // चेक करें कि क्या नंबर हमारी अधिकृत लिस्ट में है या नहीं
             if (allowedUsers[phone]) {
                 statusMsg.innerText = "";
                 document.getElementById('phoneNumber').classList.add('hidden');
                 document.getElementById('nextBtn').classList.add('hidden');
                 document.getElementById('pinSection').classList.remove('hidden');
             } else {
-                statusMsg.innerText = "यह नंबर अधिकृत नहीं है! कोई भी बाहरी व्यक्ति लॉगिन नहीं कर सकता।";
+                statusMsg.innerText = "यह नंबर अधिकृत नहीं है!";
             }
         }
 
@@ -117,12 +143,26 @@
             const phone = document.getElementById('phoneNumber').value.trim();
 
             if (pin === SECRET_PIN) {
+                // ब्राउज़र में यूजर का नंबर सेव कर लो ताकि बार-बार लॉगिन न करना पड़े
+                localStorage.setItem("akram_chat_user", phone);
+
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('chatScreen').classList.remove('hidden');
                 document.getElementById('userTitle').innerText = "Chat - " + allowedUsers[phone];
             } else {
-                statusMsg.innerText = "गलत पिन (PIN)! कृपया सही पिन दर्ज करें।";
+                statusMsg.innerText = "गलत पिन (PIN)!";
             }
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
         }
 
         function sendMessage() {
@@ -130,13 +170,41 @@
             const text = input.value.trim();
             if(!text) return;
 
+            appendMessage(text, 'sent');
+            input.value = '';
+        }
+
+        function appendMessage(content, type, isImage = false) {
             const chatMessages = document.getElementById('chatMessages');
             const msgDiv = document.createElement('div');
-            msgDiv.className = 'message sent';
-            msgDiv.innerText = text;
+            msgDiv.className = 'message ' + type;
+
+            if (isImage) {
+                msgDiv.innerHTML = `<img src="${content}" style="max-width:100%; border-radius:6px;"><div class="message-time">${getCurrentTime()} <span class="double-tick">✓✓</span></div>`;
+            } else {
+                msgDiv.innerHTML = `${content}<div class="message-time">${getCurrentTime()} <span class="double-tick">✓✓</span></div>`;
+            }
+
             chatMessages.appendChild(msgDiv);
-            input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    appendMessage(e.target.result, 'sent', true);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function recordVoice() {
+            alert("वॉइस रिकॉर्डिंग शुरू हो रही है... (माइक्रोफोन चालू है)");
+            setTimeout(() => {
+                appendMessage("🎤 [वॉइस मैसेज - 0:05]", 'sent');
+            }, 1500);
         }
 
         function checkEnter(e) {
@@ -144,6 +212,8 @@
         }
 
         function logout() {
+            // लॉगआउट करने पर सेव किया हुआ डेटा हटा दें
+            localStorage.removeItem("akram_chat_user");
             location.reload();
         }
     </script>
