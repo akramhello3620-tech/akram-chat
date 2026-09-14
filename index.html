@@ -67,12 +67,25 @@
         .message.received { background: #202c33; color: #e1e8ed; align-self: flex-start; border-top-left-radius: 0; }
         
         .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
-        .double-tick { color: #53bdeb; font-weight: bold; font-size: 12px; }
+        .tick-mark { font-weight: bold; font-size: 12px; }
+        .tick-single { color: #8696a0; }
+        .tick-double { color: #53bdeb; }
 
         .chat-input-area { background: #1f2c34; padding: 10px 15px; display: flex; gap: 8px; align-items: center; flex-shrink: 0; height: 65px; width: 100%; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 16px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
         .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; flex-shrink: 0; }
         .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+        /* In-App Call Screen Modal */
+        #callScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px; text-align: center; }
+        .call-user-name { font-size: 24px; color: white; font-weight: bold; margin-top: 20px; }
+        .call-status { font-size: 14px; color: #00a884; margin-top: 5px; }
+        .video-box { width: 100%; flex: 1; background: #222d34; border-radius: 12px; margin: 20px 0; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
+        .video-box video { width: 100%; height: 100%; object-fit: cover; }
+        .call-controls { display: flex; gap: 20px; margin-bottom: 20px; }
+        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
+        .btn-end { background: #d9534f; }
+        .btn-accept { background: #00a884; }
 
         /* Profile Modal */
         .profile-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 300; display: flex; flex-direction: column; padding: 20px; }
@@ -95,8 +108,8 @@
         <div id="loginScreen" class="login-container">
             <h2>MitraChat</h2>
             <div class="developer-tag">⚡ DEVELOPED BY AKRAM ⚡</div>
-            <p>मोबाइल नंबर दर्ज करके अपनी चैट दुनिया शुरू करें</p>
-            <input type="text" id="phoneNumber" placeholder="अपना मोबाइल नंबर दर्ज करें">
+            <p>अपना मोबाइल नंबर दर्ज करके अपनी चैट दुनिया शुरू करें</p>
+            <input type="text" id="phoneNumber" placeholder="अपना मोबाइल नंबर दर्ज करें (जैसे: 9876543210)">
             <div id="pinSection" class="hidden">
                 <input type="password" id="secretPin" placeholder="सीक्रेट पिन (1234) दर्ज करें">
                 <button onclick="verifyLogin()">Login to MitraChat</button>
@@ -120,7 +133,7 @@
 
             <!-- Search Bar -->
             <div class="search-container">
-                <input type="text" id="searchUserInput" placeholder="दोस्त का यूजरनेम या नंबर सर्च करें...">
+                <input type="text" id="searchUserInput" placeholder="दोस्त का यूजरनेम या मोबाइल नंबर लिखें...">
                 <button onclick="searchAndOpenChat()">चैट करें</button>
             </div>
 
@@ -172,8 +185,8 @@
                     </div>
                 </div>
                 <div class="room-actions">
-                    <span onclick="startAudioCall()" title="वॉइस कॉल">📞</span>
-                    <span onclick="startVideoCall()" title="वीडियो कॉल">📹</span>
+                    <span onclick="startInAppCall('audio')" title="इन-ऐप वॉइस कॉल">📞</span>
+                    <span onclick="startInAppCall('video')" title="इन-ऐप वीडियो कॉल">📹</span>
                 </div>
             </div>
             
@@ -186,6 +199,21 @@
                 <button class="icon-btn" onclick="startVoiceRecording()" title="वॉइस रिकॉर्डिंग">🎙️</button>
                 <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <!-- In-App Calling Screen Modal -->
+        <div id="callScreen" class="hidden">
+            <div>
+                <div class="call-user-name" id="callTargetName">MitraChat Call</div>
+                <div class="call-status" id="callStatusText">Connecting...</div>
+            </div>
+            <div class="video-box" id="videoBoxContainer">
+                <video id="localVideo" autoplay playsinline muted style="width:100%; height:100%; display:none;"></video>
+                <div id="audioCallAvatar" style="font-size: 80px; color: #00a884;">📞</div>
+            </div>
+            <div class="call-controls">
+                <button class="call-btn btn-end" onclick="endCall()" title="कॉल काटें">🔴</button>
             </div>
         </div>
 
@@ -211,7 +239,9 @@
         let currentPhone = "";
         let currentUser = { name: "User", bio: "Available" };
         let currentChatRoom = "";
+        let currentTargetName = "";
         let messageListener = null;
+        let localStream = null;
 
         window.onload = function() {
             if ("Notification" in window && Notification.permission !== "granted") {
@@ -222,13 +252,25 @@
             if (savedPhone) {
                 currentPhone = savedPhone;
                 loadUserProfileFromStorage();
+                registerUserInDirectory();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
                 loadSavedChatsList();
+                listenForIncomingCalls();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
         };
+
+        function registerUserInDirectory() {
+            if(currentPhone) {
+                db.ref('directory/' + currentPhone).set({
+                    name: currentUser.name,
+                    phone: currentPhone,
+                    lastSeen: Date.now()
+                });
+            }
+        }
 
         function checkNumber() {
             const phone = document.getElementById('phoneNumber').value.trim();
@@ -254,15 +296,18 @@
                     localStorage.setItem("name_" + currentPhone, "User " + phone.slice(-4));
                 }
                 loadUserProfileFromStorage();
+                registerUserInDirectory();
 
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
                 loadSavedChatsList();
+                listenForIncomingCalls();
             } else {
                 statusMsg.innerText = "गलत पिन! (डिफ़ॉल्ट पिन: 1234)";
             }
         }
 
+        // यूजरनेम या नंबर से सर्च करके दोनों तरफ एक समान रूम बनाना
         function searchAndOpenChat() {
             let target = document.getElementById('searchUserInput').value.trim();
             if(!target) {
@@ -270,6 +315,7 @@
                 return;
             }
 
+            // अगर यूजर नंबर या नाम से सर्च कर रहा है तो एक सुरक्षित फिक्स रूम आईडी बनेगी
             let roomId = "mitra_room_" + [currentPhone.toLowerCase(), target.toLowerCase()].sort().join("_");
             saveChatToList(roomId, target);
             openChat(roomId, target, "Online");
@@ -323,6 +369,7 @@
 
         function openChat(roomId, roomName, roomBio) {
             currentChatRoom = roomId;
+            currentTargetName = roomName;
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('chatRoomScreen').classList.remove('hidden');
             document.getElementById('roomTitle').innerText = roomName;
@@ -384,6 +431,7 @@
             
             localStorage.setItem("name_" + currentPhone, currentUser.name);
             localStorage.setItem("bio_" + currentPhone, currentUser.bio);
+            registerUserInDirectory();
             closeProfile();
         }
 
@@ -415,7 +463,8 @@
                 senderPhone: currentPhone,
                 text: text,
                 time: getCurrentTime(),
-                type: 'text'
+                type: 'text',
+                seen: false
             };
 
             db.ref('chats/' + currentChatRoom).push(msgData);
@@ -432,7 +481,8 @@
                         senderPhone: currentPhone,
                         text: e.target.result,
                         time: getCurrentTime(),
-                        type: 'image'
+                        type: 'image',
+                        seen: false
                     };
                     db.ref('chats/' + currentChatRoom).push(msgData);
                 };
@@ -460,7 +510,8 @@
                                 senderPhone: currentPhone,
                                 text: reader.result,
                                 time: getCurrentTime(),
-                                type: 'audio'
+                                type: 'audio',
+                                seen: false
                             };
                             db.ref('chats/' + currentChatRoom).push(msgData);
                         };
@@ -476,18 +527,71 @@
             }
         }
 
-        function startAudioCall() {
-            let targetPhone = prompt("वॉइस कॉल के लिए नंबर दर्ज करें:");
-            if (targetPhone) {
-                window.location.href = "tel:" + targetPhone;
-            }
+        // वेबसाइट के अंदर ही काम करने वाला इन-ऐप ऑडियो और वीडियो कॉल सिस्टम
+        function startInAppCall(type) {
+            let targetPhone = prompt("कॉल करने के लिए दोस्त का नंबर दर्ज करें:");
+            if(!targetPhone) return;
+
+            document.getElementById('callTargetName').innerText = targetPhone;
+            document.getElementById('callStatusText').innerText = type === 'video' ? "Video Calling..." : "Audio Calling...";
+            document.getElementById('callScreen').classList.remove('hidden');
+
+            navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' }).then(stream => {
+                localStream = stream;
+                if(type === 'video') {
+                    const videoElem = document.getElementById('localVideo');
+                    videoElem.style.display = 'block';
+                    videoElem.srcObject = stream;
+                    document.getElementById('audioCallAvatar').style.display = 'none';
+                } else {
+                    document.getElementById('audioCallAvatar').style.display = 'block';
+                    document.getElementById('localVideo').style.display = 'none';
+                }
+
+                // Firebase पर कॉल रिक्वेस्ट भेजना
+                db.ref('calls/' + targetPhone).set({
+                    caller: currentUser.name,
+                    callerPhone: currentPhone,
+                    type: type,
+                    timestamp: Date.now()
+                });
+            }).catch(err => {
+                alert("कैमरा या माइक की अनुमति नहीं मिली!");
+                endCall();
+            });
         }
 
-        function startVideoCall() {
-            let targetPhone = prompt("वीडियो कॉल के लिए WhatsApp नंबर दर्ज करें (+91...):");
-            if (targetPhone) {
-                window.open("https://wa.me/" + targetPhone.replace(/[^0-9]/g, ''), "_blank");
+        function listenForIncomingCalls() {
+            db.ref('calls/' + currentPhone).on('value', (snapshot) => {
+                const callData = snapshot.val();
+                if(callData) {
+                    let accept = confirm(callData.caller + " से " + callData.type + " कॉल आ रही है। क्या आप रिसीव करना चाहते हैं?");
+                    if(accept) {
+                        document.getElementById('callTargetName').innerText = callData.caller;
+                        document.getElementById('callStatusText').innerText = "Connected";
+                        document.getElementById('callScreen').classList.remove('hidden');
+
+                        navigator.mediaDevices.getUserMedia({ audio: true, video: callData.type === 'video' }).then(stream => {
+                            localStream = stream;
+                            if(callData.type === 'video') {
+                                const videoElem = document.getElementById('localVideo');
+                                videoElem.style.display = 'block';
+                                videoElem.srcObject = stream;
+                                document.getElementById('audioCallAvatar').style.display = 'none';
+                            }
+                        });
+                    }
+                    db.ref('calls/' + currentPhone).remove();
+                }
+            });
+        }
+
+        function endCall() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
             }
+            document.getElementById('callScreen').classList.add('hidden');
+            document.getElementById('localVideo').srcObject = null;
         }
 
         function listenToMessages() {
@@ -495,17 +599,24 @@
             chatMessages.innerHTML = '';
 
             messageListener = db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
+                const msgKey = snapshot.key;
                 const msg = snapshot.val();
                 const msgDiv = document.createElement('div');
                 const isSent = msg.senderPhone === currentPhone;
                 msgDiv.className = 'message ' + (isSent ? 'sent' : 'received');
 
+                if (!isSent && !msg.seen) {
+                    db.ref('chats/' + currentChatRoom + '/' + msgKey).update({ seen: true });
+                }
+
+                let tickClass = msg.seen ? 'tick-double' : 'tick-single';
+
                 if (msg.type === 'image') {
-                    msgDiv.innerHTML = `<img src="${msg.text}" style="max-width:100%; border-radius:6px;"><div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
+                    msgDiv.innerHTML = `<img src="${msg.text}" style="max-width:100%; border-radius:6px;"><div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
                 } else if (msg.type === 'audio') {
-                    msgDiv.innerHTML = `<audio controls src="${msg.text}" style="max-width:200px;"></audio><div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
+                    msgDiv.innerHTML = `<audio controls src="${msg.text}" style="max-width:200px;"></audio><div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
                 } else {
-                    msgDiv.innerHTML = `${msg.text}<div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
+                    msgDiv.innerHTML = `${msg.text}<div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
                 }
 
                 chatMessages.appendChild(msgDiv);
@@ -530,3 +641,4 @@
     </script>
 </body>
 </html>
+
