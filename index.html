@@ -27,17 +27,23 @@
         .wa-header { background: #1f2c34; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 18px; font-weight: bold; flex-shrink: 0; height: 60px; }
         .dev-badge-header { font-size: 10px; color: #00a884; display: block; font-weight: normal; }
 
+        /* Search Bar Area */
+        .search-container { padding: 12px 15px; background: #111b21; border-bottom: 1px solid #222d34; display: flex; gap: 8px; }
+        .search-container input { flex: 1; padding: 10px 15px; background: #202c33; border: none; border-radius: 20px; color: white; outline: none; font-size: 14px; }
+        .search-container button { background: #00a884; color: white; border: none; padding: 0 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; }
+
         /* Chat List Screen */
         #homeScreen { display: flex; flex-direction: column; height: 100%; width: 100%; }
         .chat-list { flex: 1; overflow-y: auto; background: #111b21; width: 100%; }
-        .chat-item { display: flex; align-items: center; padding: 15px; gap: 15px; cursor: pointer; border-bottom: 1px solid #222d34; }
+        .chat-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #222d34; cursor: pointer; }
         .chat-item:hover { background: #202c33; }
-        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: bold; overflow: hidden; flex-shrink: 0; }
+        .chat-left { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
+        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; overflow: hidden; flex-shrink: 0; }
+        .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .chat-info { flex: 1; min-width: 0; }
-        .chat-name-time { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .chat-name { font-size: 16px; color: #e1e8ed; font-weight: 500; }
-        .chat-time { font-size: 12px; color: #8696a0; }
-        .chat-last-msg { font-size: 13px; color: #8696a0; }
+        .chat-name { font-size: 16px; color: #e1e8ed; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-last-msg { font-size: 13px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .delete-chat-btn { background: #d9534f; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 
         /* Bottom Nav */
         .wa-nav { background: #1f2c34; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222d34; flex-shrink: 0; height: 55px; }
@@ -50,8 +56,9 @@
         .room-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
         .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; flex-shrink: 0; }
-        .room-title { font-size: 16px; font-weight: 500; }
-        .room-bio { font-size: 11px; color: #8696a0; }
+        .room-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .room-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .room-bio { font-size: 11px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; width: 100%; }
         .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
@@ -59,9 +66,7 @@
         .message.received { background: #202c33; color: #e1e8ed; align-self: flex-start; }
         
         .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
-        .tick-mark { font-weight: bold; font-size: 12px; }
-        .tick-single { color: #8696a0; } /* भेजने पर सिंगल टिक */
-        .tick-double { color: #53bdeb; } /* देखने पर ब्लू/डबल टिक */
+        .double-tick { color: #53bdeb; font-weight: bold; font-size: 12px; }
 
         .chat-input-area { background: #1f2c34; padding: 10px 15px; display: flex; gap: 8px; align-items: center; flex-shrink: 0; height: 65px; width: 100%; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
@@ -112,7 +117,15 @@
                 </div>
             </div>
 
-            <div class="chat-list" id="chatListContainer"></div>
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" id="searchUserInput" placeholder="दोस्त का यूजरनेम या नंबर सर्च करें...">
+                <button onclick="searchAndOpenChat()">चैट करें</button>
+            </div>
+
+            <div class="chat-list" id="chatListContainer">
+                <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 14px;">आपके सेव किए गए चैट्स यहाँ दिखेंगे। जब चाहें डिलीट कर सकते हैं!</div>
+            </div>
 
             <div class="wa-nav">
                 <div class="nav-item active"><span>💬</span>Chats</div>
@@ -136,7 +149,7 @@
                 <button onclick="document.getElementById('dpInput').click()" style="background: #00a884; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px;">अपनी डीपी (DP) बदलें</button>
             </div>
             <div class="profile-input-group">
-                <label>आपका नाम</label>
+                <label>आपका नाम / यूजरनेम</label>
                 <input type="text" id="myNameInput" placeholder="अपना नाम लिखें">
             </div>
             <div class="profile-input-group">
@@ -151,10 +164,10 @@
             <div class="room-header">
                 <div class="room-header-left">
                     <button class="back-btn" onclick="closeChat()">❮</button>
-                    <div class="room-avatar" id="roomAvatar">💬</div>
-                    <div>
-                        <div class="room-title" id="roomTitle">Akram Main Chat Room</div>
-                        <div class="room-bio" id="roomBio">सभी के लिए लाइव चैट</div>
+                    <div class="room-avatar" id="roomAvatar">द</div>
+                    <div style="min-width: 0;">
+                        <div class="room-title" id="roomTitle">दोस्त</div>
+                        <div class="room-bio" id="roomBio">Online</div>
                     </div>
                 </div>
             </div>
@@ -165,7 +178,7 @@
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="sendImage(event)">
                 
                 <button class="icon-btn" onclick="document.getElementById('cameraInput').click()" title="कैमरे से फोटो खींचें">📷</button>
-                <button class="icon-btn" onclick="startSpeechToText()" title="बोलकर टाइप करें (Mic)">🎙️</button>
+                <button class="icon-btn" onclick="startVoiceRecording()" title="वॉइस रिकॉर्डिंग">🎙️</button>
                 <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
             </div>
@@ -192,7 +205,7 @@
         const SECRET_PIN = "1234"; 
         let currentPhone = "";
         let currentUser = { name: "User", bio: "Available" };
-        let currentChatRoom = "akram_main_global_room"; // फिक्स ग्लोबल रूम ताकि मैसेज तुरंत आपस में सिंक हो
+        let currentChatRoom = "";
         let messageListener = null;
 
         window.onload = function() {
@@ -206,7 +219,7 @@
                 loadUserProfileFromStorage();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                renderChatList();
+                loadSavedChatsList();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -239,36 +252,83 @@
 
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                renderChatList();
+                loadSavedChatsList();
             } else {
                 statusMsg.innerText = "गलत पिन! (डिफ़ॉल्ट पिन: 1234)";
             }
         }
 
-        function renderChatList() {
-            const container = document.getElementById('chatListContainer');
-            container.innerHTML = '';
+        // सर्च करके चैट खोलना और परमानेंट सेव करना ताकि डिलीट न हो
+        function searchAndOpenChat() {
+            let target = document.getElementById('searchUserInput').value.trim();
+            if(!target) {
+                alert("कृपया दोस्त का यूजरनेम या नंबर दर्ज करें!");
+                return;
+            }
+
+            let roomId = "room_" + [currentPhone.toLowerCase(), target.toLowerCase()].sort().join("_");
             
-            const item = document.createElement('div');
-            item.className = 'chat-item';
-            item.onclick = () => openChat();
-            
-            item.innerHTML = `
-                <div class="chat-avatar">💬</div>
-                <div class="chat-info">
-                    <div class="chat-name-time">
-                        <span class="chat-name">Akram Main Chat Room</span>
-                        <span class="chat-time">Online</span>
-                    </div>
-                    <div class="chat-last-msg">यहाँ क्लिक करके तुरंत चैट करें</div>
-                </div>
-            `;
-            container.appendChild(item);
+            // चैट लिस्ट में सेव करना
+            saveChatToList(roomId, target);
+            openChat(roomId, target, "Online");
         }
 
-        function openChat() {
+        function saveChatToList(roomId, roomName) {
+            let savedChats = JSON.parse(localStorage.getItem("saved_chats_" + currentPhone) || "{}");
+            savedChats[roomId] = { name: roomName, time: getCurrentTime() };
+            localStorage.setItem("saved_chats_" + currentPhone, JSON.stringify(savedChats));
+        }
+
+        function loadSavedChatsList() {
+            const container = document.getElementById('chatListContainer');
+            container.innerHTML = '';
+
+            let savedChats = JSON.parse(localStorage.getItem("saved_chats_" + currentPhone) || "{}");
+            let keys = Object.keys(savedChats);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8696a0; font-size: 14px;">कोई चैट सेव नहीं है। ऊपर सर्च करके नया चैट शुरू करें!</div>';
+                return;
+            }
+
+            keys.forEach(roomId => {
+                let chat = savedChats[roomId];
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                
+                item.innerHTML = `
+                    <div class="chat-left" onclick="openChat('${roomId}', '${chat.name}', 'Online')">
+                        <div class="chat-avatar">${chat.name.charAt(0).toUpperCase()}</div>
+                        <div class="chat-info">
+                            <div class="chat-name">${chat.name}</div>
+                            <div class="chat-last-msg">क्लिक करके बात करें</div>
+                        </div>
+                    </div>
+                    <button class="delete-chat-btn" onclick="deleteChat('${roomId}')">डिलीट</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function deleteChat(roomId) {
+            if(confirm("क्या आप वाकई इस चैट को डिलीट करना चाहते हैं?")) {
+                let savedChats = JSON.parse(localStorage.getItem("saved_chats_" + currentPhone) || "{}");
+                delete savedChats[roomId];
+                localStorage.setItem("saved_chats_" + currentPhone, JSON.stringify(savedChats));
+                loadSavedChatsList();
+            }
+        }
+
+        function openChat(roomId, roomName, roomBio) {
+            currentChatRoom = roomId;
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('chatRoomScreen').classList.remove('hidden');
+            document.getElementById('roomTitle').innerText = roomName;
+            document.getElementById('roomBio').innerText = roomBio;
+            
+            const avatarDiv = document.getElementById('roomAvatar');
+            avatarDiv.innerText = roomName.charAt(0).toUpperCase();
+            
             listenToMessages();
         }
 
@@ -278,7 +338,7 @@
             }
             document.getElementById('chatRoomScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            renderChatList();
+            loadSavedChatsList();
         }
 
         function openProfile() {
@@ -299,7 +359,7 @@
         function closeProfile() {
             document.getElementById('profileScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            renderChatList();
+            loadSavedChatsList();
         }
 
         function updateProfilePic(event) {
@@ -353,8 +413,7 @@
                 senderPhone: currentPhone,
                 text: text,
                 time: getCurrentTime(),
-                type: 'text',
-                seen: false // शुरुआत में मैसेज अनसीन (सिंगल टिक) रहेगा
+                type: 'text'
             };
 
             db.ref('chats/' + currentChatRoom).push(msgData);
@@ -371,8 +430,7 @@
                         senderPhone: currentPhone,
                         text: e.target.result,
                         time: getCurrentTime(),
-                        type: 'image',
-                        seen: false
+                        type: 'image'
                     };
                     db.ref('chats/' + currentChatRoom).push(msgData);
                 };
@@ -380,54 +438,62 @@
             }
         }
 
-        function startSpeechToText() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("आपका ब्राउज़र वॉइस टाइपिंग सपोर्ट नहीं करता है।");
-                return;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        function startVoiceRecording() {
+            if (!isRecording) {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = function() {
+                            const msgData = {
+                                sender: currentUser.name,
+                                senderPhone: currentPhone,
+                                text: reader.result,
+                                time: getCurrentTime(),
+                                type: 'audio'
+                            };
+                            db.ref('chats/' + currentChatRoom).push(msgData);
+                        };
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    alert("वॉइस रिकॉर्डिंग शुरू! बंद करने के लिए दोबारा क्लिक करें।");
+                }).catch(err => alert("माइक्रोफोन की अनुमति नहीं मिली!"));
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                alert("वॉइस नोट भेज दिया गया है!");
             }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'hi-IN';
-            recognition.onresult = function(event) {
-                document.getElementById('messageInput').value = event.results[0][0].transcript;
-            };
-            recognition.start();
         }
 
         function listenToMessages() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
 
-            db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
-                const msgKey = snapshot.key;
+            messageListener = db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
                 const msg = snapshot.val();
                 const msgDiv = document.createElement('div');
                 const isSent = msg.senderPhone === currentPhone;
                 msgDiv.className = 'message ' + (isSent ? 'sent' : 'received');
 
-                // अगर मैसेज दूसरे ने भेजा है, तो डेटाबेस में उसे 'seen: true' (ब्लू टिक) कर दो
-                if (!isSent && !msg.seen) {
-                    db.ref('chats/' + currentChatRoom + '/' + msgKey).update({ seen: true });
-                }
-
-                // टिक का स्टेटस तय करना: देखा गया तो डबल टिक (नीला), नहीं तो सिंगल टिक (ग्रे)
-                let tickClass = msg.seen ? 'tick-double' : 'tick-single';
-
                 if (msg.type === 'image') {
-                    msgDiv.innerHTML = `<img src="${msg.text}" style="max-width:100%; border-radius:6px;"><div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
+                    msgDiv.innerHTML = `<img src="${msg.text}" style="max-width:100%; border-radius:6px;"><div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
+                } else if (msg.type === 'audio') {
+                    msgDiv.innerHTML = `<audio controls src="${msg.text}" style="max-width:200px;"></audio><div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
                 } else {
-                    msgDiv.innerHTML = `<strong>${msg.sender}:</strong><br>${msg.text}<div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
+                    msgDiv.innerHTML = `${msg.text}<div class="message-time">${msg.time} <span class="double-tick">✓✓</span></div>`;
                 }
 
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-
-            // जब सामने वाला मैसेज देखेगा, तो रियल-टाइम में टिक अपडेट हो जाएगा
-            db.ref('chats/' + currentChatRoom).on('child_changed', (snapshot) => {
-                const msgKey = snapshot.key;
-                const msg = snapshot.val();
-                // पेज रीफ्रेश करके नए अपडेटेड टिक्स लोड कर सकते हैं या फिर सिंपल सिंक रहेगा
             });
         }
 
