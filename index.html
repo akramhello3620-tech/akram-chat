@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akram Chat - Complete WhatsApp</title>
+    <title>Akram Chat - Secure & Camera Live</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -28,7 +28,8 @@
         .chat-list { flex: 1; overflow-y: auto; background: #111b21; }
         .chat-item { display: flex; align-items: center; padding: 12px 15px; gap: 15px; cursor: pointer; border-bottom: 1px solid #222d34; }
         .chat-item:hover { background: #202c33; }
-        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; }
+        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; overflow: hidden; }
+        .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .chat-info { flex: 1; }
         .chat-name-time { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .chat-name { font-size: 16px; color: #e1e8ed; font-weight: 500; }
@@ -46,8 +47,10 @@
         .room-header-left { display: flex; align-items: center; gap: 10px; }
         .room-header-right { display: flex; gap: 15px; font-size: 18px; cursor: pointer; }
         .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
-        .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; }
+        .room-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .room-title { font-size: 16px; font-weight: 500; }
+        .room-bio { font-size: 11px; color: #8696a0; }
         
         .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; }
         .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
@@ -62,11 +65,16 @@
         .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; }
         .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
-        /* Call Screen Modal */
-        .call-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 50px 20px; z-index: 100; text-align: center; }
-        .call-avatar-big { width: 100px; height: 100px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; font-weight: bold; margin-top: 50px; }
-        .end-call-btn { background: #ea0038; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 18px; cursor: pointer; font-weight: bold; }
-        
+        /* Profile Modal */
+        .profile-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 200; display: flex; flex-direction: column; padding: 20px; }
+        .profile-header { display: flex; align-items: center; gap: 15px; color: white; font-size: 18px; margin-bottom: 30px; }
+        .profile-pic-container { text-align: center; margin-bottom: 30px; }
+        .profile-big-avatar { width: 120px; height: 120px; border-radius: 50%; background: #00a884; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; overflow: hidden; position: relative; }
+        .profile-big-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-input-group { margin-bottom: 20px; }
+        .profile-input-group label { display: block; color: #00a884; font-size: 13px; margin-bottom: 5px; }
+        .profile-input-group input { width: 100%; padding: 10px; background: #2a3942; border: none; border-radius: 6px; color: white; font-size: 15px; outline: none; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -91,32 +99,15 @@
         <div id="homeScreen" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
             <div class="wa-header">
                 <span>WhatsApp</span>
-                <span onclick="logout()" title="Logout" style="font-size: 14px; cursor: pointer; background: #d9534f; padding: 5px 10px; border-radius: 4px; color: white;">Logout</span>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <span onclick="openProfile()" title="Profile & Bio" style="font-size: 20px; cursor: pointer;">👤</span>
+                    <span onclick="logout()" title="Logout" style="font-size: 13px; cursor: pointer; background: #d9534f; padding: 4px 8px; border-radius: 4px; color: white;">Logout</span>
+                </div>
             </div>
 
-            <!-- Chat List -->
-            <div class="chat-list">
-                <div class="chat-item" onclick="openChat('Tayyab', 'तय्यब भाई')">
-                    <div class="chat-avatar">त</div>
-                    <div class="chat-info">
-                        <div class="chat-name-time">
-                            <span class="chat-name">तय्यब भाई</span>
-                            <span class="chat-time" id="lastTime-Tayyab">Online</span>
-                        </div>
-                        <div class="chat-last-msg" id="lastMsg-Tayyab">चैट शुरू करने के लिए क्लिक करें...</div>
-                    </div>
-                </div>
-
-                <div class="chat-item" onclick="openChat('AtoZ', 'A to Z Novelty Official')">
-                    <div class="chat-avatar" style="background: #005c4b;">A</div>
-                    <div class="chat-info">
-                        <div class="chat-name-time">
-                            <span class="chat-name">A to Z Novelty Official</span>
-                            <span class="chat-time">Today</span>
-                        </div>
-                        <div class="chat-last-msg">दुकान का नया स्टॉक आ गया है।</div>
-                    </div>
-                </div>
+            <!-- Chat List (Only Authorized Private Contacts) -->
+            <div class="chat-list" id="chatListContainer">
+                <!-- Dynamically loaded trusted contacts -->
             </div>
 
             <div class="wa-nav">
@@ -127,39 +118,59 @@
             </div>
         </div>
 
+        <!-- Profile Settings Screen -->
+        <div id="profileScreen" class="profile-modal hidden">
+            <div class="profile-header">
+                <button class="back-btn" onclick="closeProfile()">❮</button>
+                <span>प्रोफाइल और बायो सेटिंग्स</span>
+            </div>
+            <div class="profile-pic-container">
+                <div class="profile-big-avatar" id="myAvatarPreview">
+                    <span>अ</span>
+                </div>
+                <input type="file" id="dpInput" accept="image/*" style="display: none;" onchange="updateProfilePic(event)">
+                <button onclick="document.getElementById('dpInput').click()" style="background: #00a884; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px;">डीडीपी (DP) बदलें</button>
+            </div>
+            <div class="profile-input-group">
+                <label>आपका नाम</label>
+                <input type="text" id="myNameInput" placeholder="अपना नाम लिखें">
+            </div>
+            <div class="profile-input-group">
+                <label>आपका बायो (Bio / About)</label>
+                <input type="text" id="myBioInput" placeholder="जैसे: Available / Busy at Shop">
+            </div>
+            <button onclick="saveProfile()" style="width: 100%; padding: 12px; background: #00a884; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-top: 20px;">सेव करें</button>
+        </div>
+
         <!-- Individual Chat Room Screen -->
         <div id="chatRoomScreen" class="chat-room hidden">
             <div class="room-header">
                 <div class="room-header-left">
                     <button class="back-btn" onclick="closeChat()">❮</button>
                     <div class="room-avatar" id="roomAvatar">त</div>
-                    <div class="room-title" id="roomTitle">तय्यब भाई</div>
+                    <div>
+                        <div class="room-title" id="roomTitle">तय्यब भाई</div>
+                        <div class="room-bio" id="roomBio">Available</div>
+                    </div>
                 </div>
                 <div class="room-header-right">
-                    <span onclick="startCall('video')" title="Video Call">🎥</span>
-                    <span onclick="startCall('audio')" title="Voice Call">📞</span>
+                    <span onclick="startCameraCapture()" title="लाइव फोटो खींचकर भेजें">📸</span>
                 </div>
             </div>
             
             <div class="room-messages" id="chatMessages"></div>
 
             <div class="chat-input-area">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
-                <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="तस्वीर भेजें">📷</button>
+                <!-- Hidden Camera Capture Input -->
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="sendImage(event)">
+                <!-- Hidden Gallery Image Input -->
+                <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
+                
+                <button class="icon-btn" onclick="document.getElementById('cameraInput').click()" title="कैमरे से फोटो खींचें">📷</button>
                 <button class="icon-btn" onclick="startSpeechToText()" title="बोलकर टाइप करें (Mic)">🎙️</button>
                 <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
             </div>
-        </div>
-
-        <!-- Call Screen Modal -->
-        <div id="callModal" class="call-modal hidden">
-            <div>
-                <h3 id="callStatus" style="font-size: 22px; margin-top: 20px;">Calling...</h3>
-                <p id="callTargetName" style="color: #8696a0; margin-top: 5px;"></p>
-            </div>
-            <div class="call-avatar-big" id="callModalAvatar">त</div>
-            <button class="end-call-btn" onclick="endCall()">End Call ❌</button>
         </div>
 
     </div>
@@ -180,29 +191,33 @@
 
         const db = firebase.database();
 
-        const allowedUsers = {
-            "+917283988065": "अकरम",
-            "+919876543210": "तय्यब"
+        // केवल अधिकृत प्राइवेट कॉन्टेक्ट्स की लिस्ट (थर्ड पार्टी की नो एंट्री)
+        const trustedContacts = {
+            "+917283988065": { name: "अकरम", bio: "Busy at A to Z Novelty", roomId: "akram_tayyab" },
+            "+919876543210": { name: "तय्यब भाई", bio: "Available", roomId: "akram_tayyab" },
+            "+919123456789": { name: "जावेद भाई", bio: "At Work", roomId: "akram_javed" }
         };
 
         const SECRET_PIN = "1234"; 
-        let currentUser = "";
-        let currentChatRoom = "Tayyab";
+        let currentPhone = "";
+        let currentUser = {};
+        let currentChatRoom = "";
+        let currentRoomName = "";
         let messageListener = null;
 
         window.onload = function() {
-            // नोटिफिकेशन परमिशन मांगें
             if ("Notification" in window && Notification.permission !== "granted") {
                 Notification.requestPermission();
             }
 
             const savedPhone = localStorage.getItem("akram_chat_user");
-            if (savedPhone && allowedUsers[savedPhone]) {
-                currentUser = allowedUsers[savedPhone];
+            if (savedPhone && trustedContacts[savedPhone]) {
+                currentPhone = savedPhone;
+                currentUser = trustedContacts[savedPhone];
+                loadUserProfileFromStorage();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                loadLastMessages();
-                setupGlobalNotifications();
+                renderTrustedContactsList();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -212,13 +227,13 @@
             const phone = document.getElementById('phoneNumber').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             if (!phone) { statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!"; return; }
-            if (allowedUsers[phone]) {
+            if (trustedContacts[phone]) {
                 statusMsg.innerText = "";
                 document.getElementById('phoneNumber').classList.add('hidden');
                 document.getElementById('nextBtn').classList.add('hidden');
                 document.getElementById('pinSection').classList.remove('hidden');
             } else {
-                statusMsg.innerText = "यह नंबर अधिकृत नहीं है!";
+                statusMsg.innerText = "यह नंबर अधिकृत नहीं है! कोई बाहरी व्यक्ति अंदर नहीं आ सकता।";
             }
         }
 
@@ -228,22 +243,60 @@
             const phone = document.getElementById('phoneNumber').value.trim();
             if (pin === SECRET_PIN) {
                 localStorage.setItem("akram_chat_user", phone);
-                currentUser = allowedUsers[phone];
+                currentPhone = phone;
+                currentUser = trustedContacts[phone];
+                loadUserProfileFromStorage();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                loadLastMessages();
-                setupGlobalNotifications();
+                renderTrustedContactsList();
             } else {
                 statusMsg.innerText = "गलत पिन (PIN)!";
             }
         }
 
-        function openChat(roomId, roomName) {
+        // केवल आपके सेव किए गए और अधिकृत लोगों की कांटेक्ट लिस्ट दिखाना
+        function renderTrustedContactsList() {
+            const container = document.getElementById('chatListContainer');
+            container.innerHTML = '';
+
+            for (let ph in trustedContacts) {
+                if (ph !== currentPhone) { // खुद को छोड़कर बाकी अधिकृत कॉन्टेक्ट्स दिखाएं
+                    const contact = trustedContacts[ph];
+                    const savedDP = localStorage.getItem("dp_" + ph) || "";
+                    
+                    const item = document.createElement('div');
+                    item.className = 'chat-item';
+                    item.onclick = () => openChat(contact.roomId, contact.name, contact.bio, savedDP);
+                    
+                    item.innerHTML = `
+                        <div class="chat-avatar">${savedDP ? `<img src="${savedDP}">` : contact.name.charAt(0)}</div>
+                        <div class="chat-info">
+                            <div class="chat-name-time">
+                                <span class="chat-name">${contact.name}</span>
+                                <span class="chat-time">Online</span>
+                            </div>
+                            <div class="chat-last-msg">${contact.bio}</div>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                }
+            }
+        }
+
+        function openChat(roomId, roomName, roomBio, roomAvatarData) {
             currentChatRoom = roomId;
+            currentRoomName = roomName;
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('chatRoomScreen').classList.remove('hidden');
             document.getElementById('roomTitle').innerText = roomName;
-            document.getElementById('roomAvatar').innerText = roomName.charAt(0);
+            document.getElementById('roomBio').innerText = roomBio;
+            
+            const avatarDiv = document.getElementById('roomAvatar');
+            if (roomAvatarData) {
+                avatarDiv.innerHTML = `<img src="${roomAvatarData}">`;
+            } else {
+                avatarDiv.innerText = roomName.charAt(0);
+            }
             
             listenToMessages();
         }
@@ -254,7 +307,57 @@
             }
             document.getElementById('chatRoomScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            loadLastMessages();
+            renderTrustedContactsList();
+        }
+
+        // प्रोफाइल और बायो स्क्रीन खोलना
+        function openProfile() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('profileScreen').classList.remove('hidden');
+            document.getElementById('myNameInput').value = currentUser.name;
+            document.getElementById('myBioInput').value = currentUser.bio;
+            
+            const savedDP = localStorage.getItem("dp_" + currentPhone);
+            const preview = document.getElementById('myAvatarPreview');
+            if (savedDP) {
+                preview.innerHTML = `<img src="${savedDP}">`;
+            } else {
+                preview.innerHTML = `<span>${currentUser.name.charAt(0)}</span>`;
+            }
+        }
+
+        function closeProfile() {
+            document.getElementById('profileScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.remove('hidden');
+            renderTrustedContactsList();
+        }
+
+        function updateProfilePic(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem("dp_" + currentPhone, e.target.result);
+                    document.getElementById('myAvatarPreview').innerHTML = `<img src="${e.target.result}">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('myNameInput').value.trim();
+            const newBio = document.getElementById('myBioInput').value.trim();
+            if (newName) currentUser.name = newName;
+            if (newBio) currentUser.bio = newBio;
+            trustedContacts[currentPhone] = currentUser;
+            closeProfile();
+        }
+
+        function loadUserProfileFromStorage() {
+            const savedName = localStorage.getItem("name_" + currentPhone);
+            const savedBio = localStorage.getItem("bio_" + currentPhone);
+            if (savedName) currentUser.name = savedName;
+            if (savedBio) currentUser.bio = savedBio;
         }
 
         function getCurrentTime() {
@@ -274,7 +377,7 @@
             if(!text) return;
 
             const msgData = {
-                sender: currentUser,
+                sender: currentUser.name,
                 text: text,
                 time: getCurrentTime(),
                 type: 'text'
@@ -284,13 +387,14 @@
             input.value = '';
         }
 
+        // कैमरे या गैलरी से फोटो भेजने का फंक्शन
         function sendImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const msgData = {
-                        sender: currentUser,
+                        sender: currentUser.name,
                         text: e.target.result,
                         time: getCurrentTime(),
                         type: 'image'
@@ -301,7 +405,6 @@
             }
         }
 
-        // 🎙️ बोलकर टाइप करने वाला फीचर (Speech-to-Text)
         function startSpeechToText() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 alert("आपका ब्राउज़र वॉइस टाइपिंग सपोर्ट नहीं करता है।");
@@ -309,43 +412,11 @@
             }
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
-            recognition.lang = 'hi-IN'; // हिंदी भाषा के लिए
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = function() {
-                document.getElementById('messageInput').placeholder = "सुन रहा हूँ, बोलिए...";
-            };
-
+            recognition.lang = 'hi-IN';
             recognition.onresult = function(event) {
-                const speechResult = event.results[0][0].transcript;
-                document.getElementById('messageInput').value = speechResult;
-                document.getElementById('messageInput').placeholder = "Message";
+                document.getElementById('messageInput').value = event.results[0][0].transcript;
             };
-
-            recognition.onerror = function() {
-                document.getElementById('messageInput').placeholder = "Message";
-                alert("आवाज पहचानने में त्रुटि हुई, दोबारा प्रयास करें।");
-            };
-
-            recognition.onend = function() {
-                document.getElementById('messageInput').placeholder = "Message";
-            };
-
             recognition.start();
-        }
-
-        // 📞 कॉल सिस्टम (Voice & Video Call Simulation)
-        function startCall(type) {
-            const modal = document.getElementById('callModal');
-            document.getElementById('callStatus').innerText = type === 'video' ? 'Video Calling...' : 'Voice Calling...';
-            document.getElementById('callTargetName').innerText = document.getElementById('roomTitle').innerText;
-            document.getElementById('callModalAvatar').innerText = document.getElementById('roomAvatar').innerText;
-            modal.classList.remove('hidden');
-        }
-
-        function endCall() {
-            document.getElementById('callModal').classList.add('hidden');
         }
 
         function listenToMessages() {
@@ -355,7 +426,7 @@
             messageListener = db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
                 const msg = snapshot.val();
                 const msgDiv = document.createElement('div');
-                const isSent = msg.sender === currentUser;
+                const isSent = msg.sender === currentUser.name;
                 msgDiv.className = 'message ' + (isSent ? 'sent' : 'received');
 
                 if (msg.type === 'image') {
@@ -366,29 +437,11 @@
 
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
 
-        function loadLastMessages() {
-            db.ref('chats/Tayyab').limitToLast(1).on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                if(msg) {
-                    document.getElementById('lastMsg-Tayyab').innerText = msg.text.startsWith('data:image') ? '📷 [तस्वीर]' : msg.text;
-                    document.getElementById('lastTime-Tayyab').innerText = msg.time;
-                }
-            });
-        }
-
-        // 🔔 नोटिफिकेशन सिस्टम
-        function setupGlobalNotifications() {
-            db.ref('chats/Tayyab').on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                if (msg && msg.sender !== currentUser && document.getElementById('chatRoomScreen').classList.contains('hidden')) {
+                // नोटिफिकेशन यदि ऐप बैकग्राउंड में हो
+                if (!isSent && document.getElementById('chatRoomScreen').classList.contains('hidden')) {
                     if (Notification.permission === "granted") {
-                        new Notification("नया मैसेज - " + msg.sender, {
-                            body: msg.text,
-                            icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
-                        });
+                        new Notification("नया मैसेज - " + msg.sender, { body: msg.text });
                     }
                 }
             });
@@ -405,6 +458,7 @@
     </script>
 </body>
 </html>
+
 
 
 
