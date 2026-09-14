@@ -1,644 +1,1849 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MitraChat - Developed by Akram</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0,user-scalable=no">
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        html, body { width: 100%; height: 100%; background: #0b141a; color: #e1e8ed; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        
-        .app-container { width: 100%; max-width: 450px; background: #111b21; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+<title>MitraChat - Developed by Akram</title>
 
-        /* Login Screen */
-        .login-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 30px; justify-content: center; align-items: center; text-align: center; display: flex; flex-direction: column; background: #111b21; color: #e1e8ed; z-index: 500; }
-        .login-container h2 { margin-bottom: 5px; color: #00a884; font-size: 32px; font-weight: 700; }
-        .developer-tag { font-size: 12px; color: #00a884; margin-bottom: 30px; font-weight: bold; letter-spacing: 2px; background: #1f2c34; padding: 6px 16px; border-radius: 20px; border: 1px solid #2a3942; }
-        .login-container input { width: 100%; padding: 14px 18px; margin-bottom: 15px; background: #222d34; border: 1px solid #2a3942; border-radius: 10px; font-size: 16px; color: white; outline: none; }
-        .login-container button { width: 100%; padding: 14px; background: #00a884; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .login-container button:hover { background: #008f72; }
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-        /* App Header */
-        .wa-header { background: #1f2c34; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 20px; font-weight: bold; flex-shrink: 0; height: 60px; }
-        .dev-badge-header { font-size: 10px; color: #00a884; display: block; font-weight: normal; letter-spacing: 0.5px; }
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
 
-        /* Search Bar Area */
-        .search-container { padding: 10px 15px; background: #111b21; border-bottom: 1px solid #222d34; display: flex; gap: 8px; }
-        .search-container input { flex: 1; padding: 10px 16px; background: #202c33; border: none; border-radius: 20px; color: white; outline: none; font-size: 14px; }
-        .search-container button { background: #00a884; color: white; border: none; padding: 0 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; }
+body{
+    background:#e9edef;
+    height:100vh;
+    overflow:hidden;
+}
 
-        /* Chat List Screen */
-        #homeScreen { display: flex; flex-direction: column; height: 100%; width: 100%; }
-        .chat-list { flex: 1; overflow-y: auto; background: #111b21; width: 100%; }
-        .chat-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid #222d34; cursor: pointer; transition: background 0.1s; }
-        .chat-item:hover { background: #202c33; }
-        .chat-left { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
-        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; overflow: hidden; flex-shrink: 0; }
-        .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .chat-info { flex: 1; min-width: 0; }
-        .chat-name { font-size: 16px; color: #e1e8ed; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-last-msg { font-size: 13px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
-        .delete-chat-btn { background: #d9534f; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
+button{
+    border:0;
+    cursor:pointer;
+}
 
-        /* Bottom Nav */
-        .wa-nav { background: #1f2c34; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222d34; flex-shrink: 0; height: 55px; }
-        .nav-item { color: #8696a0; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
-        .nav-item.active { color: #00a884; font-weight: bold; }
+input{
+    outline:none;
+}
 
-        /* Chat Room Screen */
-        #chatRoomScreen { display: flex; flex-direction: column; height: 100%; width: 100%; background: #0b141a; position: absolute; top: 0; left: 0; z-index: 200; }
-        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-shrink: 0; height: 60px; }
-        .room-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
-        .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; flex-shrink: 0; font-size: 16px; }
-        .room-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .room-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .room-bio { font-size: 11px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .room-actions { display: flex; gap: 18px; align-items: center; font-size: 18px; cursor: pointer; }
-        
-        .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; width: 100%; }
-        .message { max-width: 75%; padding: 10px 12px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; line-height: 1.4; }
-        .message.sent { background: #005c4b; color: #e1e8ed; align-self: flex-end; border-top-right-radius: 0; }
-        .message.received { background: #202c33; color: #e1e8ed; align-self: flex-start; border-top-left-radius: 0; }
-        
-        .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
-        .tick-mark { font-weight: bold; font-size: 12px; }
-        .tick-single { color: #8696a0; }
-        .tick-double { color: #53bdeb; }
+/* LOGIN */
 
-        .chat-input-area { background: #1f2c34; padding: 10px 15px; display: flex; gap: 8px; align-items: center; flex-shrink: 0; height: 65px; width: 100%; }
-        .chat-input-area input[type="text"] { flex: 1; padding: 10px 16px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
-        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; flex-shrink: 0; }
-        .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+#loginPage{
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#075e54,#128c7e);
+    padding:20px;
+}
 
-        /* In-App Call Screen Modal */
-        #callScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px; text-align: center; }
-        .call-user-name { font-size: 24px; color: white; font-weight: bold; margin-top: 20px; }
-        .call-status { font-size: 14px; color: #00a884; margin-top: 5px; }
-        .video-box { width: 100%; flex: 1; background: #222d34; border-radius: 12px; margin: 20px 0; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
-        .video-box video { width: 100%; height: 100%; object-fit: cover; }
-        .call-controls { display: flex; gap: 20px; margin-bottom: 20px; }
-        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
-        .btn-end { background: #d9534f; }
-        .btn-accept { background: #00a884; }
+.loginBox{
+    width:100%;
+    max-width:420px;
+    background:white;
+    border-radius:20px;
+    padding:30px 25px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+}
 
-        /* Profile Modal */
-        .profile-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 300; display: flex; flex-direction: column; padding: 20px; }
-        .profile-header { display: flex; align-items: center; gap: 15px; color: white; font-size: 18px; margin-bottom: 25px; }
-        .profile-pic-container { text-align: center; margin-bottom: 25px; }
-        .profile-big-avatar { width: 110px; height: 110px; border-radius: 50%; background: #00a884; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 38px; color: white; overflow: hidden; position: relative; border: 2px solid #00a884; }
-        .profile-big-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-input-group { margin-bottom: 18px; }
-        .profile-input-group label { display: block; color: #00a884; font-size: 13px; margin-bottom: 6px; font-weight: bold; }
-        .profile-input-group input { width: 100%; padding: 12px; background: #222d34; border: 1px solid #2a3942; border-radius: 8px; color: white; font-size: 15px; outline: none; }
+.logo{
+    width:80px;
+    height:80px;
+    background:#25d366;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:35px;
+    margin:0 auto 15px;
+}
 
-        .hidden { display: none !important; }
-    </style>
+.loginBox h1{
+    color:#075e54;
+    margin-bottom:7px;
+}
+
+.developer{
+    color:#777;
+    font-size:13px;
+    margin-bottom:25px;
+}
+
+.input{
+    width:100%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    margin-bottom:12px;
+    font-size:16px;
+}
+
+.btn{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    background:#25d366;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.btn:active{
+    transform:scale(.98);
+}
+
+#otpBox{
+    display:none;
+    margin-top:15px;
+}
+
+#recaptcha-container{
+    margin:10px 0;
+}
+
+/* APP */
+
+#app{
+    display:none;
+    height:100vh;
+    background:#f0f2f5;
+}
+
+.topbar{
+    height:60px;
+    background:#075e54;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 15px;
+}
+
+.brand{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.topActions button{
+    background:transparent;
+    color:white;
+    font-size:21px;
+    margin-left:12px;
+}
+
+.searchBox{
+    padding:10px;
+    background:white;
+}
+
+.searchBox input{
+    width:100%;
+    padding:12px 15px;
+    border-radius:25px;
+    border:1px solid #ddd;
+    background:#f0f2f5;
+    font-size:15px;
+}
+
+#usersList{
+    height:calc(100vh - 120px);
+    overflow:auto;
+}
+
+.userItem{
+    background:white;
+    display:flex;
+    align-items:center;
+    padding:12px 15px;
+    border-bottom:1px solid #eee;
+}
+
+.avatar{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background:#128c7e;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    font-weight:bold;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.userInfo{
+    margin-left:12px;
+    flex:1;
+}
+
+.userInfo strong{
+    display:block;
+    font-size:16px;
+}
+
+.userInfo small{
+    color:#777;
+}
+
+.bottomNav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:60px;
+    background:white;
+    border-top:1px solid #ddd;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+}
+
+.bottomNav button{
+    background:white;
+    color:#555;
+    font-size:12px;
+}
+
+.bottomNav button span{
+    display:block;
+    font-size:22px;
+}
+
+/* CHAT */
+
+#chatPage{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#efeae2;
+    z-index:10;
+}
+
+.chatHeader{
+    height:60px;
+    background:#075e54;
+    color:white;
+    display:flex;
+    align-items:center;
+    padding:8px;
+}
+
+.backBtn{
+    background:transparent;
+    color:white;
+    font-size:25px;
+    margin-right:8px;
+}
+
+.chatAvatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#128c7e;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.chatAvatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.chatUser{
+    margin-left:10px;
+    flex:1;
+}
+
+.chatUser strong{
+    display:block;
+}
+
+.chatUser small{
+    color:#d6eeee;
+}
+
+.chatActions button{
+    background:transparent;
+    color:white;
+    font-size:20px;
+    margin-left:10px;
+}
+
+.messages{
+    height:calc(100vh - 120px);
+    overflow:auto;
+    padding:15px;
+}
+
+.message{
+    max-width:78%;
+    padding:9px 11px;
+    margin-bottom:8px;
+    border-radius:9px;
+    word-wrap:break-word;
+    font-size:15px;
+}
+
+.sent{
+    margin-left:auto;
+    background:#d9fdd3;
+}
+
+.received{
+    margin-right:auto;
+    background:white;
+}
+
+.messageTime{
+    display:block;
+    text-align:right;
+    color:#777;
+    font-size:10px;
+    margin-top:3px;
+}
+
+.tick{
+    color:#2196f3;
+}
+
+.composer{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:60px;
+    background:#f0f2f5;
+    display:flex;
+    align-items:center;
+    padding:7px;
+    gap:7px;
+}
+
+.composer input{
+    flex:1;
+    border:0;
+    border-radius:25px;
+    padding:13px 16px;
+    font-size:15px;
+}
+
+.composer button{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:#25d366;
+    color:white;
+    font-size:20px;
+}
+
+/* PROFILE */
+
+#profilePage{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#f0f2f5;
+    z-index:20;
+    overflow:auto;
+}
+
+.profileHeader{
+    background:#075e54;
+    color:white;
+    padding:15px;
+    font-size:20px;
+}
+
+.profileContent{
+    max-width:500px;
+    margin:auto;
+    padding:25px;
+}
+
+.profileAvatar{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:#128c7e;
+    color:white;
+    margin:0 auto 20px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    overflow:hidden;
+}
+
+.profileAvatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.fileBtn{
+    display:block;
+    width:100%;
+    background:#128c7e;
+    color:white;
+    padding:12px;
+    text-align:center;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.profileContent label{
+    display:block;
+    margin:12px 0 5px;
+    font-weight:bold;
+}
+
+/* EMPTY */
+
+.empty{
+    padding:40px 20px;
+    text-align:center;
+    color:#777;
+}
+
+/* TOAST */
+
+#toast{
+    position:fixed;
+    left:50%;
+    bottom:80px;
+    transform:translateX(-50%);
+    background:#222;
+    color:white;
+    padding:12px 18px;
+    border-radius:25px;
+    display:none;
+    z-index:100;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="app-container">
+<!-- ================= LOGIN ================= -->
 
-        <!-- Login Screen -->
-        <div id="loginScreen" class="login-container">
-            <h2>MitraChat</h2>
-            <div class="developer-tag">⚡ DEVELOPED BY AKRAM ⚡</div>
-            <p>अपना मोबाइल नंबर दर्ज करके अपनी चैट दुनिया शुरू करें</p>
-            <input type="text" id="phoneNumber" placeholder="अपना मोबाइल नंबर दर्ज करें (जैसे: 9876543210)">
-            <div id="pinSection" class="hidden">
-                <input type="password" id="secretPin" placeholder="सीक्रेट पिन (1234) दर्ज करें">
-                <button onclick="verifyLogin()">Login to MitraChat</button>
-            </div>
-            <button id="nextBtn" onclick="checkNumber()">Next</button>
-            <p id="statusMsg" style="margin-top: 15px; color: #ff5c5c; font-size: 14px;"></p>
-        </div>
+<div id="loginPage">
 
-        <!-- Chat List Screen -->
-        <div id="homeScreen" class="hidden">
-            <div class="wa-header">
-                <div>
-                    MitraChat
-                    <span class="dev-badge-header">Developed by Akram</span>
-                </div>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <span onclick="openProfile()" title="Profile & DP" style="font-size: 22px; cursor: pointer;">👤</span>
-                    <span onclick="logout()" title="Logout" style="font-size: 12px; cursor: pointer; background: #d9534f; padding: 5px 10px; border-radius: 6px; color: white; font-weight: bold;">Logout</span>
-                </div>
-            </div>
+<div class="loginBox">
 
-            <!-- Search Bar -->
-            <div class="search-container">
-                <input type="text" id="searchUserInput" placeholder="दोस्त का यूजरनेम या मोबाइल नंबर लिखें...">
-                <button onclick="searchAndOpenChat()">चैट करें</button>
-            </div>
+<div class="logo">💬</div>
 
-            <div class="chat-list" id="chatListContainer">
-                <div style="padding: 25px; text-align: center; color: #8696a0; font-size: 14px;">कोई चैट सेव नहीं है। ऊपर सर्च करके नया दोस्त जोड़ें!</div>
-            </div>
+<h1>MitraChat</h1>
 
-            <div class="wa-nav">
-                <div class="nav-item active"><span>💬</span>Chats</div>
-                <div class="nav-item"><span>🔄</span>Status</div>
-                <div class="nav-item"><span>👥</span>Communities</div>
-                <div class="nav-item"><span>📞</span>Calls</div>
-            </div>
-        </div>
+<div class="developer">
+Developed by Akram
+</div>
 
-        <!-- Profile Settings Screen -->
-        <div id="profileScreen" class="profile-modal hidden">
-            <div class="profile-header">
-                <button class="back-btn" onclick="closeProfile()">❮</button>
-                <span>प्रोफाइल, डीपी और बायो</span>
-            </div>
-            <div class="profile-pic-container">
-                <div class="profile-big-avatar" id="myAvatarPreview">
-                    <span>अ</span>
-                </div>
-                <input type="file" id="dpInput" accept="image/*" style="display: none;" onchange="updateProfilePic(event)">
-                <button onclick="document.getElementById('dpInput').click()" style="background: #00a884; color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold;">अपनी डीपी (DP) बदलें</button>
-            </div>
-            <div class="profile-input-group">
-                <label>आपका नाम / यूजरनेम</label>
-                <input type="text" id="myNameInput" placeholder="अपना नाम लिखें">
-            </div>
-            <div class="profile-input-group">
-                <label>आपका बायो (Bio / About)</label>
-                <input type="text" id="myBioInput" placeholder="जैसे: Available / Busy">
-            </div>
-            <button onclick="saveProfile()" style="width: 100%; padding: 14px; background: #00a884; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 15px; font-weight: bold;">सेव करें</button>
-        </div>
+<input
+ id="phone"
+ class="input"
+ type="tel"
+ placeholder="Mobile Number (+91XXXXXXXXXX)"
+>
 
-        <!-- Individual Chat Room Screen -->
-        <div id="chatRoomScreen" class="chat-room hidden">
-            <div class="room-header">
-                <div class="room-header-left">
-                    <button class="back-btn" onclick="closeChat()">❮</button>
-                    <div class="room-avatar" id="roomAvatar">द</div>
-                    <div style="min-width: 0;">
-                        <div class="room-title" id="roomTitle">दोस्त</div>
-                        <div class="room-bio" id="roomBio">Online</div>
-                    </div>
-                </div>
-                <div class="room-actions">
-                    <span onclick="startInAppCall('audio')" title="इन-ऐप वॉइस कॉल">📞</span>
-                    <span onclick="startInAppCall('video')" title="इन-ऐप वीडियो कॉल">📹</span>
-                </div>
-            </div>
-            
-            <div class="room-messages" id="chatMessages"></div>
+<div id="recaptcha-container"></div>
 
-            <div class="chat-input-area">
-                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="sendImage(event)">
-                
-                <button class="icon-btn" onclick="document.getElementById('cameraInput').click()" title="कैमरे से फोटो खींचें">📷</button>
-                <button class="icon-btn" onclick="startVoiceRecording()" title="वॉइस रिकॉर्डिंग">🎙️</button>
-                <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
-                <button class="send-btn" onclick="sendMessage()">➤</button>
-            </div>
-        </div>
+<button class="btn" onclick="sendOTP()">
+Send OTP
+</button>
 
-        <!-- In-App Calling Screen Modal -->
-        <div id="callScreen" class="hidden">
-            <div>
-                <div class="call-user-name" id="callTargetName">MitraChat Call</div>
-                <div class="call-status" id="callStatusText">Connecting...</div>
-            </div>
-            <div class="video-box" id="videoBoxContainer">
-                <video id="localVideo" autoplay playsinline muted style="width:100%; height:100%; display:none;"></video>
-                <div id="audioCallAvatar" style="font-size: 80px; color: #00a884;">📞</div>
-            </div>
-            <div class="call-controls">
-                <button class="call-btn btn-end" onclick="endCall()" title="कॉल काटें">🔴</button>
-            </div>
-        </div>
+<div id="otpBox">
 
-    </div>
+<input
+ id="otp"
+ class="input"
+ type="number"
+ placeholder="Enter OTP"
+>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+<button class="btn" onclick="verifyOTP()">
+Verify OTP & Login
+</button>
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+</div>
 
-        const db = firebase.database();
+</div>
 
-        const SECRET_PIN = "1234"; 
-        let currentPhone = "";
-        let currentUser = { name: "User", bio: "Available" };
-        let currentChatRoom = "";
-        let currentTargetName = "";
-        let messageListener = null;
-        let localStream = null;
+</div>
 
-        window.onload = function() {
-            if ("Notification" in window && Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
 
-            const savedPhone = localStorage.getItem("mitrachat_user");
-            if (savedPhone) {
-                currentPhone = savedPhone;
-                loadUserProfileFromStorage();
-                registerUserInDirectory();
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('homeScreen').classList.remove('hidden');
-                loadSavedChatsList();
-                listenForIncomingCalls();
-            } else {
-                document.getElementById('loginScreen').classList.remove('hidden');
-            }
-        };
+<!-- ================= MAIN APP ================= -->
 
-        function registerUserInDirectory() {
-            if(currentPhone) {
-                db.ref('directory/' + currentPhone).set({
-                    name: currentUser.name,
-                    phone: currentPhone,
-                    lastSeen: Date.now()
-                });
-            }
-        }
+<div id="app">
 
-        function checkNumber() {
-            const phone = document.getElementById('phoneNumber').value.trim();
-            const statusMsg = document.getElementById('statusMsg');
-            if (!phone) { statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!"; return; }
-            
-            statusMsg.innerText = "";
-            document.getElementById('phoneNumber').classList.add('hidden');
-            document.getElementById('nextBtn').classList.add('hidden');
-            document.getElementById('pinSection').classList.remove('hidden');
-        }
+<div class="topbar">
 
-        function verifyLogin() {
-            const pin = document.getElementById('secretPin').value.trim();
-            const statusMsg = document.getElementById('statusMsg');
-            const phone = document.getElementById('phoneNumber').value.trim();
-            
-            if (pin === SECRET_PIN) {
-                localStorage.setItem("mitrachat_user", phone);
-                currentPhone = phone;
-                
-                if(!localStorage.getItem("name_" + currentPhone)) {
-                    localStorage.setItem("name_" + currentPhone, "User " + phone.slice(-4));
+<div class="brand">
+MitraChat
+</div>
+
+<div class="topActions">
+
+<button onclick="openProfile()">👤</button>
+
+<button onclick="logout()">🚪</button>
+
+</div>
+
+</div>
+
+
+<div class="searchBox">
+
+<input
+ id="searchInput"
+ type="text"
+ placeholder="Search name, username or number..."
+ oninput="searchUsers()"
+>
+
+</div>
+
+
+<div id="usersList">
+
+<div class="empty">
+Search users to start chatting
+</div>
+
+</div>
+
+
+<div class="bottomNav">
+
+<button onclick="home()">
+<span>💬</span>
+Chats
+</button>
+
+<button onclick="showStatus()">
+<span>⭕</span>
+Status
+</button>
+
+<button onclick="showCommunities()">
+<span>👥</span>
+Communities
+</button>
+
+<button onclick="showCalls()">
+<span>📞</span>
+Calls
+</button>
+
+</div>
+
+</div>
+
+
+<!-- ================= CHAT ================= -->
+
+<div id="chatPage">
+
+<div class="chatHeader">
+
+<button class="backBtn" onclick="closeChat()">
+‹
+</button>
+
+<div id="chatAvatar" class="chatAvatar">
+👤
+</div>
+
+<div class="chatUser">
+
+<strong id="chatName">
+User
+</strong>
+
+<small id="chatStatus">
+offline
+</small>
+
+</div>
+
+<div class="chatActions">
+
+<button onclick="makeCall()">
+📞
+</button>
+
+<button onclick="makeVideoCall()">
+📹
+</button>
+
+</div>
+
+</div>
+
+
+<div id="messages" class="messages">
+</div>
+
+
+<div class="composer">
+
+<input
+ id="messageInput"
+ type="text"
+ placeholder="Type a message..."
+ onkeydown="if(event.key==='Enter') sendMessage()"
+>
+
+<button onclick="sendMessage()">
+➤
+</button>
+
+</div>
+
+</div>
+
+
+<!-- ================= PROFILE ================= -->
+
+<div id="profilePage">
+
+<div class="profileHeader">
+
+<button
+ onclick="closeProfile()"
+ style="background:transparent;color:white;font-size:25px;margin-right:10px">
+‹
+</button>
+
+My Profile
+
+</div>
+
+
+<div class="profileContent">
+
+<div id="profileAvatar"
+     class="profileAvatar">
+👤
+</div>
+
+<label class="fileBtn">
+📷 Choose Profile Photo
+<input
+ id="photoInput"
+ type="file"
+ accept="image/*"
+ onchange="uploadProfilePhoto()"
+ style="display:none"
+>
+</label>
+
+
+<label>Name</label>
+
+<input
+ id="profileName"
+ class="input"
+ placeholder="Your name"
+>
+
+
+<label>Username</label>
+
+<input
+ id="profileUsername"
+ class="input"
+ placeholder="Username"
+>
+
+
+<label>Bio</label>
+
+<input
+ id="profileBio"
+ class="input"
+ placeholder="About you"
+>
+
+
+<button class="btn" onclick="saveProfile()">
+Save Profile
+</button>
+
+</div>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<script>
+
+/* =====================================================
+   FIREBASE CONFIG
+   =====================================================
+
+   Replace these values with your Firebase Web App config.
+===================================================== */
+
+const firebaseConfig = {
+
+    apiKey: "YOUR_API_KEY",
+
+    authDomain:
+    "YOUR_PROJECT.firebaseapp.com",
+
+    databaseURL:
+    "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+
+    projectId:
+    "YOUR_PROJECT",
+
+    storageBucket:
+    "YOUR_PROJECT.appspot.com",
+
+    messagingSenderId:
+    "YOUR_SENDER_ID",
+
+    appId:
+    "YOUR_APP_ID"
+
+};
+
+
+/* =====================================================
+   FIREBASE START
+===================================================== */
+
+let firebaseReady = false;
+
+try{
+
+    if(
+        firebaseConfig.apiKey &&
+        !firebaseConfig.apiKey.startsWith("YOUR_")
+    ){
+
+        firebase.initializeApp(firebaseConfig);
+
+        firebaseReady = true;
+
+    }
+
+}catch(error){
+
+    console.error(error);
+
+}
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let confirmationResult = null;
+
+let currentUser = null;
+
+let currentChatUser = null;
+
+let chatListener = null;
+
+let usersCache = {};
+
+let recaptchaVerifier = null;
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+function toast(message){
+
+    const box =
+    document.getElementById("toast");
+
+    box.innerText = message;
+
+    box.style.display = "block";
+
+    setTimeout(()=>{
+
+        box.style.display = "none";
+
+    },2500);
+
+}
+
+
+/* =====================================================
+   PHONE FORMAT
+===================================================== */
+
+function normalizePhone(phone){
+
+    phone = phone.trim();
+
+    if(phone.startsWith("0")){
+
+        phone =
+        "+91" +
+        phone.substring(1);
+
+    }
+
+    if(
+        !phone.startsWith("+") &&
+        phone.length === 10
+    ){
+
+        phone = "+91" + phone;
+
+    }
+
+    return phone;
+
+}
+
+
+/* =====================================================
+   SEND OTP
+===================================================== */
+
+function sendOTP(){
+
+    if(!firebaseReady){
+
+        toast("Firebase config pehle add karein");
+
+        return;
+
+    }
+
+    let phone =
+    normalizePhone(
+        document.getElementById("phone").value
+    );
+
+    if(!/^\+\d{10,15}$/.test(phone)){
+
+        toast("Valid mobile number enter karein");
+
+        return;
+
+    }
+
+    try{
+
+        if(!recaptchaVerifier){
+
+            recaptchaVerifier =
+            new firebase.auth.RecaptchaVerifier(
+                "recaptcha-container",
+                {
+                    size:"normal"
                 }
-                loadUserProfileFromStorage();
-                registerUserInDirectory();
+            );
 
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('homeScreen').classList.remove('hidden');
-                loadSavedChatsList();
-                listenForIncomingCalls();
-            } else {
-                statusMsg.innerText = "गलत पिन! (डिफ़ॉल्ट पिन: 1234)";
-            }
         }
 
-        // यूजरनेम या नंबर से सर्च करके दोनों तरफ एक समान रूम बनाना
-        function searchAndOpenChat() {
-            let target = document.getElementById('searchUserInput').value.trim();
-            if(!target) {
-                alert("कृपया दोस्त का यूजरनेम या नंबर दर्ज करें!");
-                return;
-            }
+        firebase.auth()
+        .signInWithPhoneNumber(
+            phone,
+            recaptchaVerifier
+        )
+        .then(result=>{
 
-            // अगर यूजर नंबर या नाम से सर्च कर रहा है तो एक सुरक्षित फिक्स रूम आईडी बनेगी
-            let roomId = "mitra_room_" + [currentPhone.toLowerCase(), target.toLowerCase()].sort().join("_");
-            saveChatToList(roomId, target);
-            openChat(roomId, target, "Online");
-        }
+            confirmationResult = result;
 
-        function saveChatToList(roomId, roomName) {
-            let savedChats = JSON.parse(localStorage.getItem("mitra_chats_" + currentPhone) || "{}");
-            savedChats[roomId] = { name: roomName, time: getCurrentTime() };
-            localStorage.setItem("mitra_chats_" + currentPhone, JSON.stringify(savedChats));
-        }
+            document.getElementById(
+                "otpBox"
+            ).style.display="block";
 
-        function loadSavedChatsList() {
-            const container = document.getElementById('chatListContainer');
-            container.innerHTML = '';
+            toast("OTP bhej diya gaya");
 
-            let savedChats = JSON.parse(localStorage.getItem("mitra_chats_" + currentPhone) || "{}");
-            let keys = Object.keys(savedChats);
+        })
+        .catch(error=>{
 
-            if (keys.length === 0) {
-                container.innerHTML = '<div style="padding: 25px; text-align: center; color: #8696a0; font-size: 14px;">कोई चैट सेव नहीं है। ऊपर सर्च करके नया दोस्त जोड़ें!</div>';
-                return;
-            }
+            console.error(error);
 
-            keys.forEach(roomId => {
-                let chat = savedChats[roomId];
-                const item = document.createElement('div');
-                item.className = 'chat-item';
-                
-                item.innerHTML = `
-                    <div class="chat-left" onclick="openChat('${roomId}', '${chat.name}', 'Online')">
-                        <div class="chat-avatar">${chat.name.charAt(0).toUpperCase()}</div>
-                        <div class="chat-info">
-                            <div class="chat-name">${chat.name}</div>
-                            <div class="chat-last-msg">क्लिक करके बात करें</div>
-                        </div>
-                    </div>
-                    <button class="delete-chat-btn" onclick="deleteChat('${roomId}')">डिलीट</button>
-                `;
-                container.appendChild(item);
-            });
-        }
+            toast(error.message);
 
-        function deleteChat(roomId) {
-            if(confirm("क्या आप वाकई इस चैट को हटाना चाहते हैं?")) {
-                let savedChats = JSON.parse(localStorage.getItem("mitra_chats_" + currentPhone) || "{}");
-                delete savedChats[roomId];
-                localStorage.setItem("mitra_chats_" + currentPhone, JSON.stringify(savedChats));
-                loadSavedChatsList();
-            }
-        }
+        });
 
-        function openChat(roomId, roomName, roomBio) {
-            currentChatRoom = roomId;
-            currentTargetName = roomName;
-            document.getElementById('homeScreen').classList.add('hidden');
-            document.getElementById('chatRoomScreen').classList.remove('hidden');
-            document.getElementById('roomTitle').innerText = roomName;
-            document.getElementById('roomBio').innerText = roomBio;
-            
-            const avatarDiv = document.getElementById('roomAvatar');
-            avatarDiv.innerText = roomName.charAt(0).toUpperCase();
-            
-            listenToMessages();
-        }
+    }catch(error){
 
-        function closeChat() {
-            if (messageListener) {
-                db.ref('chats/' + currentChatRoom).off('child_added', messageListener);
-            }
-            document.getElementById('chatRoomScreen').classList.add('hidden');
-            document.getElementById('homeScreen').classList.remove('hidden');
-            loadSavedChatsList();
-        }
+        console.error(error);
 
-        function openProfile() {
-            document.getElementById('homeScreen').classList.add('hidden');
-            document.getElementById('profileScreen').classList.remove('hidden');
-            document.getElementById('myNameInput').value = currentUser.name;
-            document.getElementById('myBioInput').value = currentUser.bio;
-            
-            const savedDP = localStorage.getItem("dp_" + currentPhone);
-            const preview = document.getElementById('myAvatarPreview');
-            if (savedDP) {
-                preview.innerHTML = `<img src="${savedDP}">`;
-            } else {
-                preview.innerHTML = `<span>${currentUser.name.charAt(0)}</span>`;
-            }
-        }
+        toast("OTP send nahi hua");
 
-        function closeProfile() {
-            document.getElementById('profileScreen').classList.add('hidden');
-            document.getElementById('homeScreen').classList.remove('hidden');
-            loadSavedChatsList();
-        }
+    }
 
-        function updateProfilePic(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    localStorage.setItem("dp_" + currentPhone, e.target.result);
-                    document.getElementById('myAvatarPreview').innerHTML = `<img src="${e.target.result}">`;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+}
 
-        function saveProfile() {
-            const newName = document.getElementById('myNameInput').value.trim();
-            const newBio = document.getElementById('myBioInput').value.trim();
-            if (newName) currentUser.name = newName;
-            if (newBio) currentUser.bio = newBio;
-            
-            localStorage.setItem("name_" + currentPhone, currentUser.name);
-            localStorage.setItem("bio_" + currentPhone, currentUser.bio);
-            registerUserInDirectory();
-            closeProfile();
-        }
 
-        function loadUserProfileFromStorage() {
-            const savedName = localStorage.getItem("name_" + currentPhone);
-            const savedBio = localStorage.getItem("bio_" + currentPhone);
-            if (savedName) currentUser.name = savedName;
-            if (savedBio) currentUser.bio = savedBio;
-        }
+/* =====================================================
+   VERIFY OTP
+===================================================== */
 
-        function getCurrentTime() {
-            const now = new Date();
-            let hours = now.getHours();
-            let minutes = now.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            return hours + ':' + minutes + ' ' + ampm;
-        }
+function verifyOTP(){
 
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if(!text) return;
+    const otp =
+    document.getElementById("otp").value.trim();
 
-            const msgData = {
-                sender: currentUser.name,
-                senderPhone: currentPhone,
-                text: text,
-                time: getCurrentTime(),
-                type: 'text',
-                seen: false
+    if(!confirmationResult){
+
+        toast("Pehle OTP send karein");
+
+        return;
+
+    }
+
+    if(otp.length < 4){
+
+        toast("OTP enter karein");
+
+        return;
+
+    }
+
+    confirmationResult
+    .confirm(otp)
+    .then(result=>{
+
+        currentUser = result.user;
+
+        afterLogin();
+
+    })
+    .catch(error=>{
+
+        console.error(error);
+
+        toast("Wrong OTP");
+
+    });
+
+}
+
+
+/* =====================================================
+   AFTER LOGIN
+===================================================== */
+
+function afterLogin(){
+
+    document.getElementById(
+        "loginPage"
+    ).style.display="none";
+
+    document.getElementById(
+        "app"
+    ).style.display="block";
+
+    const uid =
+    currentUser.uid;
+
+    const userRef =
+    firebase.database()
+    .ref("users/"+uid);
+
+    userRef.once("value")
+    .then(snapshot=>{
+
+        let data =
+        snapshot.val();
+
+        if(!data){
+
+            data = {
+
+                uid:uid,
+
+                phone:
+                currentUser.phoneNumber || "",
+
+                name:"Mitra User",
+
+                username:
+                "user"+uid.substring(0,6),
+
+                bio:"Hey there! I am using MitraChat",
+
+                photo:"",
+
+                online:true,
+
+                createdAt:
+                firebase.database.ServerValue.TIMESTAMP
+
             };
 
-            db.ref('chats/' + currentChatRoom).push(msgData);
-            input.value = '';
-        }
+            userRef.set(data);
 
-        function sendImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const msgData = {
-                        sender: currentUser.name,
-                        senderPhone: currentPhone,
-                        text: e.target.result,
-                        time: getCurrentTime(),
-                        type: 'image',
-                        seen: false
-                    };
-                    db.ref('chats/' + currentChatRoom).push(msgData);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+        }else{
 
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+            userRef.update({
 
-        function startVoiceRecording() {
-            if (!isRecording) {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = function() {
-                            const msgData = {
-                                sender: currentUser.name,
-                                senderPhone: currentPhone,
-                                text: reader.result,
-                                time: getCurrentTime(),
-                                type: 'audio',
-                                seen: false
-                            };
-                            db.ref('chats/' + currentChatRoom).push(msgData);
-                        };
-                    };
-                    mediaRecorder.start();
-                    isRecording = true;
-                    alert("वॉइस रिकॉर्डिंग शुरू! बंद करने के लिए दोबारा क्लिक करें।");
-                }).catch(err => alert("माइक्रोफोन की अनुमति नहीं मिली!"));
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                alert("वॉइस नोट भेज दिया गया है!");
-            }
-        }
+                online:true,
 
-        // वेबसाइट के अंदर ही काम करने वाला इन-ऐप ऑडियो और वीडियो कॉल सिस्टम
-        function startInAppCall(type) {
-            let targetPhone = prompt("कॉल करने के लिए दोस्त का नंबर दर्ज करें:");
-            if(!targetPhone) return;
+                lastSeen:
+                firebase.database.ServerValue.TIMESTAMP
 
-            document.getElementById('callTargetName').innerText = targetPhone;
-            document.getElementById('callStatusText').innerText = type === 'video' ? "Video Calling..." : "Audio Calling...";
-            document.getElementById('callScreen').classList.remove('hidden');
-
-            navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' }).then(stream => {
-                localStream = stream;
-                if(type === 'video') {
-                    const videoElem = document.getElementById('localVideo');
-                    videoElem.style.display = 'block';
-                    videoElem.srcObject = stream;
-                    document.getElementById('audioCallAvatar').style.display = 'none';
-                } else {
-                    document.getElementById('audioCallAvatar').style.display = 'block';
-                    document.getElementById('localVideo').style.display = 'none';
-                }
-
-                // Firebase पर कॉल रिक्वेस्ट भेजना
-                db.ref('calls/' + targetPhone).set({
-                    caller: currentUser.name,
-                    callerPhone: currentPhone,
-                    type: type,
-                    timestamp: Date.now()
-                });
-            }).catch(err => {
-                alert("कैमरा या माइक की अनुमति नहीं मिली!");
-                endCall();
             });
+
         }
 
-        function listenForIncomingCalls() {
-            db.ref('calls/' + currentPhone).on('value', (snapshot) => {
-                const callData = snapshot.val();
-                if(callData) {
-                    let accept = confirm(callData.caller + " से " + callData.type + " कॉल आ रही है। क्या आप रिसीव करना चाहते हैं?");
-                    if(accept) {
-                        document.getElementById('callTargetName').innerText = callData.caller;
-                        document.getElementById('callStatusText').innerText = "Connected";
-                        document.getElementById('callScreen').classList.remove('hidden');
+    });
 
-                        navigator.mediaDevices.getUserMedia({ audio: true, video: callData.type === 'video' }).then(stream => {
-                            localStream = stream;
-                            if(callData.type === 'video') {
-                                const videoElem = document.getElementById('localVideo');
-                                videoElem.style.display = 'block';
-                                videoElem.srcObject = stream;
-                                document.getElementById('audioCallAvatar').style.display = 'none';
-                            }
-                        });
-                    }
-                    db.ref('calls/' + currentPhone).remove();
-                }
-            });
+    setPresence();
+
+    loadUsers();
+
+}
+
+
+/* =====================================================
+   PRESENCE
+===================================================== */
+
+function setPresence(){
+
+    const ref =
+    firebase.database()
+    .ref("users/"+currentUser.uid);
+
+    ref.onDisconnect()
+    .update({
+
+        online:false,
+
+        lastSeen:
+        firebase.database.ServerValue.TIMESTAMP
+
+    });
+
+    ref.update({
+
+        online:true
+
+    });
+
+}
+
+
+/* =====================================================
+   LOAD USERS
+===================================================== */
+
+function loadUsers(){
+
+    firebase.database()
+    .ref("users")
+    .on("value",snapshot=>{
+
+        usersCache =
+        snapshot.val() || {};
+
+        searchUsers();
+
+    });
+
+}
+
+
+/* =====================================================
+   SEARCH USERS
+===================================================== */
+
+function searchUsers(){
+
+    const query =
+    document.getElementById(
+        "searchInput"
+    ).value
+    .toLowerCase()
+    .trim();
+
+    const list =
+    document.getElementById("usersList");
+
+    list.innerHTML="";
+
+    let found=0;
+
+    Object.values(usersCache)
+    .forEach(user=>{
+
+        if(
+            !user.uid ||
+            user.uid === currentUser.uid
+        ){
+
+            return;
+
         }
 
-        function endCall() {
-            if(localStream) {
-                localStream.getTracks().forEach(track => track.stop());
+        const name =
+        (user.name || "")
+        .toLowerCase();
+
+        const username =
+        (user.username || "")
+        .toLowerCase();
+
+        const phone =
+        (user.phone || "")
+        .toLowerCase();
+
+        if(
+            query === "" ||
+            name.includes(query) ||
+            username.includes(query) ||
+            phone.includes(query)
+        ){
+
+            found++;
+
+            const item =
+            document.createElement("div");
+
+            item.className="userItem";
+
+            item.onclick=()=>{
+                openChat(user);
+            };
+
+            const avatar =
+            document.createElement("div");
+
+            avatar.className="avatar";
+
+            if(user.photo){
+
+                avatar.innerHTML =
+                "<img src='"+user.photo+"'>";
+
+            }else{
+
+                avatar.innerText =
+                (user.name || "U")
+                .charAt(0)
+                .toUpperCase();
+
             }
-            document.getElementById('callScreen').classList.add('hidden');
-            document.getElementById('localVideo').srcObject = null;
+
+            const info =
+            document.createElement("div");
+
+            info.className="userInfo";
+
+            info.innerHTML =
+            "<strong>"+
+            escapeHTML(user.name || "User")+
+            "</strong>"+
+            "<small>@"+
+            escapeHTML(user.username || "")+
+            "</small>";
+
+            item.appendChild(avatar);
+
+            item.appendChild(info);
+
+            list.appendChild(item);
+
         }
 
-        function listenToMessages() {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '';
+    });
 
-            messageListener = db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
-                const msgKey = snapshot.key;
-                const msg = snapshot.val();
-                const msgDiv = document.createElement('div');
-                const isSent = msg.senderPhone === currentPhone;
-                msgDiv.className = 'message ' + (isSent ? 'sent' : 'received');
 
-                if (!isSent && !msg.seen) {
-                    db.ref('chats/' + currentChatRoom + '/' + msgKey).update({ seen: true });
-                }
+    if(found===0){
 
-                let tickClass = msg.seen ? 'tick-double' : 'tick-single';
+        list.innerHTML =
+        '<div class="empty">No user found</div>';
 
-                if (msg.type === 'image') {
-                    msgDiv.innerHTML = `<img src="${msg.text}" style="max-width:100%; border-radius:6px;"><div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
-                } else if (msg.type === 'audio') {
-                    msgDiv.innerHTML = `<audio controls src="${msg.text}" style="max-width:200px;"></audio><div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
-                } else {
-                    msgDiv.innerHTML = `${msg.text}<div class="message-time">${msg.time} <span class="tick-mark ${tickClass}">✓✓</span></div>`;
-                }
+    }
 
-                chatMessages.appendChild(msgDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
-                if (!isSent && document.getElementById('chatRoomScreen').classList.contains('hidden')) {
-                    if (Notification.permission === "granted") {
-                        new Notification("नया मैसेज - " + msg.sender, { body: msg.text });
-                    }
-                }
-            });
+
+/* =====================================================
+   OPEN CHAT
+===================================================== */
+
+function openChat(user){
+
+    currentChatUser = user;
+
+    document.getElementById(
+        "chatPage"
+    ).style.display="block";
+
+    document.getElementById(
+        "chatName"
+    ).innerText =
+    user.name || "User";
+
+    const avatar =
+    document.getElementById(
+        "chatAvatar"
+    );
+
+    if(user.photo){
+
+        avatar.innerHTML =
+        "<img src='"+user.photo+"'>";
+
+    }else{
+
+        avatar.innerText =
+        (user.name || "U")
+        .charAt(0)
+        .toUpperCase();
+
+    }
+
+    updateChatStatus(user);
+
+    loadMessages();
+
+}
+
+
+/* =====================================================
+   CHAT STATUS
+===================================================== */
+
+function updateChatStatus(user){
+
+    const status =
+    document.getElementById(
+        "chatStatus"
+    );
+
+    if(user.online){
+
+        status.innerText="online";
+
+    }else{
+
+        status.innerText="offline";
+
+    }
+
+}
+
+
+/* =====================================================
+   ROOM ID
+===================================================== */
+
+function getRoomId(uid1,uid2){
+
+    return [uid1,uid2]
+    .sort()
+    .join("_");
+
+}
+
+
+/* =====================================================
+   LOAD MESSAGES
+===================================================== */
+
+function loadMessages(){
+
+    const messages =
+    document.getElementById(
+        "messages"
+    );
+
+    messages.innerHTML="";
+
+    if(chatListener){
+
+        chatListener.off();
+
+    }
+
+    const room =
+    getRoomId(
+        currentUser.uid,
+        currentChatUser.uid
+    );
+
+    chatListener =
+    firebase.database()
+    .ref("chats/"+room);
+
+    chatListener
+    .on("child_added",snapshot=>{
+
+        const message =
+        snapshot.val();
+
+        renderMessage(
+            snapshot.key,
+            message
+        );
+
+    });
+
+}
+
+
+/* =====================================================
+   RENDER MESSAGE
+===================================================== */
+
+function renderMessage(id,message){
+
+    const container =
+    document.getElementById(
+        "messages"
+    );
+
+    const div =
+    document.createElement("div");
+
+    const sent =
+    message.sender === currentUser.uid;
+
+    div.className =
+    "message "+
+    (sent ? "sent" : "received");
+
+    let text =
+    escapeHTML(message.text || "");
+
+    let tick="";
+
+    if(sent){
+
+        tick =
+        message.seen
+        ? '<span class="tick">✓✓</span>'
+        : "✓";
+
+    }
+
+    div.innerHTML =
+    text+
+    '<span class="messageTime">'+
+    formatTime(message.time)+
+    " "+
+    tick+
+    "</span>";
+
+    container.appendChild(div);
+
+    container.scrollTop =
+    container.scrollHeight;
+
+    /* Mark received message as seen */
+
+    if(
+        !sent &&
+        !message.seen
+    ){
+
+        firebase.database()
+        .ref(
+            "chats/"+
+            getRoomId(
+                currentUser.uid,
+                currentChatUser.uid
+            )+
+            "/"+
+            id
+        )
+        .update({
+            seen:true
+        });
+
+    }
+
+}
+
+
+/* =====================================================
+   SEND MESSAGE
+===================================================== */
+
+function sendMessage(){
+
+    const input =
+    document.getElementById(
+        "messageInput"
+    );
+
+    const text =
+    input.value.trim();
+
+    if(!text){
+
+        return;
+
+    }
+
+    if(!currentChatUser){
+
+        return;
+
+    }
+
+    const room =
+    getRoomId(
+        currentUser.uid,
+        currentChatUser.uid
+    );
+
+    firebase.database()
+    .ref("chats/"+room)
+    .push({
+
+        sender:
+        currentUser.uid,
+
+        receiver:
+        currentChatUser.uid,
+
+        text:text,
+
+        type:"text",
+
+        time:
+        firebase.database.ServerValue.TIMESTAMP,
+
+        seen:false
+
+    })
+    .then(()=>{
+
+        input.value="";
+
+    })
+    .catch(error=>{
+
+        console.error(error);
+
+        toast("Message send nahi hua");
+
+    });
+
+}
+
+
+/* =====================================================
+   CLOSE CHAT
+===================================================== */
+
+function closeChat(){
+
+    document.getElementById(
+        "chatPage"
+    ).style.display="none";
+
+    if(chatListener){
+
+        chatListener.off();
+
+        chatListener=null;
+
+    }
+
+    currentChatUser=null;
+
+}
+
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+function openProfile(){
+
+    document.getElementById(
+        "profilePage"
+    ).style.display="block";
+
+    firebase.database()
+    .ref("users/"+currentUser.uid)
+    .once("value")
+    .then(snapshot=>{
+
+        const user =
+        snapshot.val() || {};
+
+        document.getElementById(
+            "profileName"
+        ).value =
+        user.name || "";
+
+        document.getElementById(
+            "profileUsername"
+        ).value =
+        user.username || "";
+
+        document.getElementById(
+            "profileBio"
+        ).value =
+        user.bio || "";
+
+        const avatar =
+        document.getElementById(
+            "profileAvatar"
+        );
+
+        if(user.photo){
+
+            avatar.innerHTML =
+            "<img src='"+user.photo+"'>";
+
+        }else{
+
+            avatar.innerText =
+            (user.name || "U")
+            .charAt(0)
+            .toUpperCase();
+
         }
 
-        function checkEnter(e) {
-            if(e.key === 'Enter') sendMessage();
-        }
+    });
 
-        function logout() {
-            localStorage.removeItem("mitrachat_user");
+}
+
+
+/* =====================================================
+   SAVE PROFILE
+===================================================== */
+
+function saveProfile(){
+
+    const name =
+    document.getElementById(
+        "profileName"
+    ).value.trim();
+
+    const username =
+    document.getElementById(
+        "profileUsername"
+    ).value.trim()
+    .toLowerCase()
+    .replace(/\s/g,"");
+
+    const bio =
+    document.getElementById(
+        "profileBio"
+    ).value.trim();
+
+    if(!name){
+
+        toast("Name enter karein");
+
+        return;
+
+    }
+
+    firebase.database()
+    .ref("users/"+currentUser.uid)
+    .update({
+
+        name:name,
+
+        username:username,
+
+        bio:bio
+
+    })
+    .then(()=>{
+
+        toast("Profile saved");
+
+        closeProfile();
+
+    });
+
+}
+
+
+/* =====================================================
+   PROFILE PHOTO
+===================================================== */
+
+function uploadProfilePhoto(){
+
+    const file =
+    document.getElementById(
+        "photoInput"
+    ).files[0];
+
+    if(!file){
+
+        return;
+
+    }
+
+    if(file.size > 3*1024*1024){
+
+        toast("Photo 3MB se chhoti rakhein");
+
+        return;
+
+    }
+
+    const reader =
+    new FileReader();
+
+    reader.onload=()=>{
+
+        const photo =
+        reader.result;
+
+        document.getElementById(
+            "profileAvatar"
+        ).innerHTML =
+        "<img src='"+photo+"'>";
+
+        firebase.database()
+        .ref("users/"+currentUser.uid)
+        .update({
+
+            photo:photo
+
+        })
+        .then(()=>{
+
+            toast("Profile photo updated");
+
+        });
+
+    };
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =====================================================
+   CALL
+===================================================== */
+
+function makeCall(){
+
+    if(
+        !currentChatUser ||
+        !currentChatUser.phone
+    ){
+
+        toast("Phone number available nahi hai");
+
+        return;
+
+    }
+
+    window.location.href =
+    "tel:"+currentChatUser.phone;
+
+}
+
+
+/* =====================================================
+   VIDEO CALL
+===================================================== */
+
+function makeVideoCall(){
+
+    toast(
+        "Video calling ke liye WebRTC setup required hai"
+    );
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function showStatus(){
+
+    toast(
+        "Status feature next version mein"
+    );
+
+}
+
+
+/* =====================================================
+   COMMUNITIES
+===================================================== */
+
+function showCommunities(){
+
+    toast(
+        "Communities feature next version mein"
+    );
+
+}
+
+
+/* =====================================================
+   CALLS
+===================================================== */
+
+function showCalls(){
+
+    toast(
+        "Call history feature next version mein"
+    );
+
+}
+
+
+/* =====================================================
+   HOME
+===================================================== */
+
+function home(){
+
+    closeChat();
+
+    closeProfile();
+
+}
+
+
+/* =====================================================
+   CLOSE PROFILE
+===================================================== */
+
+function closeProfile(){
+
+    document.getElementById(
+        "profilePage"
+    ).style.display="none";
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+function logout(){
+
+    if(!firebaseReady){
+
+        return;
+
+    }
+
+    if(
+        confirm("Logout karna hai?")
+    ){
+
+        firebase.auth()
+        .signOut()
+        .then(()=>{
+
             location.reload();
+
+        });
+
+    }
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(text){
+
+    const div =
+    document.createElement("div");
+
+    div.textContent =
+    text;
+
+    return div.innerHTML;
+
+}
+
+
+/* =====================================================
+   FORMAT TIME
+===================================================== */
+
+function formatTime(timestamp){
+
+    if(!timestamp){
+
+        return "";
+
+    }
+
+    const date =
+    new Date(timestamp);
+
+    return date.toLocaleTimeString(
+        [],
+        {
+            hour:"2-digit",
+            minute:"2-digit"
         }
-    </script>
+    );
+
+}
+
+
+/* =====================================================
+   AUTH STATE
+===================================================== */
+
+if(firebaseReady){
+
+    firebase.auth()
+    .onAuthStateChanged(user=>{
+
+        if(user){
+
+            currentUser=user;
+
+            afterLogin();
+
+        }
+
+    });
+
+}
+
+</script>
+
 </body>
 </html>
-
