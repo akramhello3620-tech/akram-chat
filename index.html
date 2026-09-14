@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akram Chat - Secure Login</title>
+    <title>Akram Chat - Complete WhatsApp</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -23,8 +23,7 @@
 
         /* WhatsApp Header */
         .wa-header { background: #1f2c34; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 20px; font-weight: bold; }
-        .wa-header-icons { display: flex; gap: 15px; align-items: center; }
-
+        
         /* Chat List Screen */
         .chat-list { flex: 1; overflow-y: auto; background: #111b21; }
         .chat-item { display: flex; align-items: center; padding: 12px 15px; gap: 15px; cursor: pointer; border-bottom: 1px solid #222d34; }
@@ -43,7 +42,9 @@
 
         /* Chat Room Screen */
         .chat-room { display: flex; flex-direction: column; height: 100%; background: #0b141a; }
-        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; gap: 12px; color: #fff; }
+        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-shrink: 0; }
+        .room-header-left { display: flex; align-items: center; gap: 10px; }
+        .room-header-right { display: flex; gap: 15px; font-size: 18px; cursor: pointer; }
         .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
         .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .room-title { font-size: 16px; font-weight: 500; }
@@ -56,10 +57,15 @@
         .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
         .double-tick { color: #53bdeb; font-weight: bold; font-size: 12px; }
 
-        .chat-input-area { padding: 10px; background: #1f2c34; display: flex; gap: 8px; align-items: center; }
+        .chat-input-area { padding: 10px; background: #1f2c34; display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
         .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; }
         .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+        /* Call Screen Modal */
+        .call-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 50px 20px; z-index: 100; text-align: center; }
+        .call-avatar-big { width: 100px; height: 100px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; font-weight: bold; margin-top: 50px; }
+        .end-call-btn { background: #ea0038; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 18px; cursor: pointer; font-weight: bold; }
         
         .hidden { display: none !important; }
     </style>
@@ -85,9 +91,7 @@
         <div id="homeScreen" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
             <div class="wa-header">
                 <span>WhatsApp</span>
-                <div class="wa-header-icons">
-                    <span onclick="logout()" title="Logout" style="font-size: 14px; cursor: pointer; background: #d9534f; padding: 5px 10px; border-radius: 4px; color: white;">Logout</span>
-                </div>
+                <span onclick="logout()" title="Logout" style="font-size: 14px; cursor: pointer; background: #d9534f; padding: 5px 10px; border-radius: 4px; color: white;">Logout</span>
             </div>
 
             <!-- Chat List -->
@@ -115,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- WhatsApp Bottom Navigation -->
             <div class="wa-nav">
                 <div class="nav-item active"><span>💬</span>Chats</div>
                 <div class="nav-item"><span>🔄</span>Updates</div>
@@ -127,22 +130,36 @@
         <!-- Individual Chat Room Screen -->
         <div id="chatRoomScreen" class="chat-room hidden">
             <div class="room-header">
-                <button class="back-btn" onclick="closeChat()">❮</button>
-                <div class="room-avatar" id="roomAvatar">त</div>
-                <div class="room-title" id="roomTitle">तय्यब भाई</div>
+                <div class="room-header-left">
+                    <button class="back-btn" onclick="closeChat()">❮</button>
+                    <div class="room-avatar" id="roomAvatar">त</div>
+                    <div class="room-title" id="roomTitle">तय्यब भाई</div>
+                </div>
+                <div class="room-header-right">
+                    <span onclick="startCall('video')" title="Video Call">🎥</span>
+                    <span onclick="startCall('audio')" title="Voice Call">📞</span>
+                </div>
             </div>
             
-            <div class="room-messages" id="chatMessages">
-                <!-- Messages will load here live from Firebase -->
-            </div>
+            <div class="room-messages" id="chatMessages"></div>
 
             <div class="chat-input-area">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
-                <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📷</button>
-                <button class="icon-btn" onclick="recordVoice()">🎙️</button>
+                <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="तस्वीर भेजें">📷</button>
+                <button class="icon-btn" onclick="startSpeechToText()" title="बोलकर टाइप करें (Mic)">🎙️</button>
                 <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
             </div>
+        </div>
+
+        <!-- Call Screen Modal -->
+        <div id="callModal" class="call-modal hidden">
+            <div>
+                <h3 id="callStatus" style="font-size: 22px; margin-top: 20px;">Calling...</h3>
+                <p id="callTargetName" style="color: #8696a0; margin-top: 5px;"></p>
+            </div>
+            <div class="call-avatar-big" id="callModalAvatar">त</div>
+            <button class="end-call-btn" onclick="endCall()">End Call ❌</button>
         </div>
 
     </div>
@@ -171,14 +188,21 @@
         const SECRET_PIN = "1234"; 
         let currentUser = "";
         let currentChatRoom = "Tayyab";
+        let messageListener = null;
 
         window.onload = function() {
+            // नोटिफिकेशन परमिशन मांगें
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
             const savedPhone = localStorage.getItem("akram_chat_user");
             if (savedPhone && allowedUsers[savedPhone]) {
                 currentUser = allowedUsers[savedPhone];
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
                 loadLastMessages();
+                setupGlobalNotifications();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -187,12 +211,7 @@
         function checkNumber() {
             const phone = document.getElementById('phoneNumber').value.trim();
             const statusMsg = document.getElementById('statusMsg');
-
-            if (!phone) {
-                statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!";
-                return;
-            }
-
+            if (!phone) { statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!"; return; }
             if (allowedUsers[phone]) {
                 statusMsg.innerText = "";
                 document.getElementById('phoneNumber').classList.add('hidden');
@@ -207,13 +226,13 @@
             const pin = document.getElementById('secretPin').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const phone = document.getElementById('phoneNumber').value.trim();
-
             if (pin === SECRET_PIN) {
                 localStorage.setItem("akram_chat_user", phone);
                 currentUser = allowedUsers[phone];
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
                 loadLastMessages();
+                setupGlobalNotifications();
             } else {
                 statusMsg.innerText = "गलत पिन (PIN)!";
             }
@@ -230,6 +249,9 @@
         }
 
         function closeChat() {
+            if (messageListener) {
+                db.ref('chats/' + currentChatRoom).off('child_added', messageListener);
+            }
             document.getElementById('chatRoomScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
             loadLastMessages();
@@ -279,22 +301,58 @@
             }
         }
 
-        function recordVoice() {
-            const voiceText = "🎤 [वॉइस मैसेज - 0:05]";
-            const msgData = {
-                sender: currentUser,
-                text: voiceText,
-                time: getCurrentTime(),
-                type: 'text'
+        // 🎙️ बोलकर टाइप करने वाला फीचर (Speech-to-Text)
+        function startSpeechToText() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("आपका ब्राउज़र वॉइस टाइपिंग सपोर्ट नहीं करता है।");
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'hi-IN'; // हिंदी भाषा के लिए
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                document.getElementById('messageInput').placeholder = "सुन रहा हूँ, बोलिए...";
             };
-            db.ref('chats/' + currentChatRoom).push(msgData);
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                document.getElementById('messageInput').value = speechResult;
+                document.getElementById('messageInput').placeholder = "Message";
+            };
+
+            recognition.onerror = function() {
+                document.getElementById('messageInput').placeholder = "Message";
+                alert("आवाज पहचानने में त्रुटि हुई, दोबारा प्रयास करें।");
+            };
+
+            recognition.onend = function() {
+                document.getElementById('messageInput').placeholder = "Message";
+            };
+
+            recognition.start();
+        }
+
+        // 📞 कॉल सिस्टम (Voice & Video Call Simulation)
+        function startCall(type) {
+            const modal = document.getElementById('callModal');
+            document.getElementById('callStatus').innerText = type === 'video' ? 'Video Calling...' : 'Voice Calling...';
+            document.getElementById('callTargetName').innerText = document.getElementById('roomTitle').innerText;
+            document.getElementById('callModalAvatar').innerText = document.getElementById('roomAvatar').innerText;
+            modal.classList.remove('hidden');
+        }
+
+        function endCall() {
+            document.getElementById('callModal').classList.add('hidden');
         }
 
         function listenToMessages() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
 
-            db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
+            messageListener = db.ref('chats/' + currentChatRoom).on('child_added', (snapshot) => {
                 const msg = snapshot.val();
                 const msgDiv = document.createElement('div');
                 const isSent = msg.sender === currentUser;
@@ -321,6 +379,21 @@
             });
         }
 
+        // 🔔 नोटिफिकेशन सिस्टम
+        function setupGlobalNotifications() {
+            db.ref('chats/Tayyab').on('child_added', (snapshot) => {
+                const msg = snapshot.val();
+                if (msg && msg.sender !== currentUser && document.getElementById('chatRoomScreen').classList.contains('hidden')) {
+                    if (Notification.permission === "granted") {
+                        new Notification("नया मैसेज - " + msg.sender, {
+                            body: msg.text,
+                            icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
+                        });
+                    }
+                }
+            });
+        }
+
         function checkEnter(e) {
             if(e.key === 'Enter') sendMessage();
         }
@@ -332,6 +405,7 @@
     </script>
 </body>
 </html>
+
 
 
 
