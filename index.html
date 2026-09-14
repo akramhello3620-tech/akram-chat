@@ -28,9 +28,9 @@
         .dev-badge-header { font-size: 10px; color: #00a884; display: block; font-weight: normal; }
 
         /* Search Bar Area */
-        .search-container { padding: 10px; background: #111b21; border-bottom: 1px solid #222d34; display: flex; gap: 8px; }
-        .search-container input { flex: 1; padding: 8px 12px; background: #202c33; border: none; border-radius: 20px; color: white; outline: none; font-size: 14px; }
-        .search-container button { background: #00a884; color: white; border: none; padding: 0 15px; border-radius: 20px; cursor: pointer; font-size: 13px; }
+        .search-container { padding: 12px 15px; background: #111b21; border-bottom: 1px solid #222d34; display: flex; gap: 8px; }
+        .search-container input { flex: 1; padding: 10px 15px; background: #202c33; border: none; border-radius: 20px; color: white; outline: none; font-size: 14px; }
+        .search-container button { background: #00a884; color: white; border: none; padding: 0 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; }
 
         /* Chat List Screen */
         #homeScreen { display: flex; flex-direction: column; height: 100%; width: 100%; }
@@ -90,11 +90,11 @@
 
     <div class="app-container">
 
-        <!-- Login Screen (Open for Anyone) -->
+        <!-- Login Screen -->
         <div id="loginScreen" class="login-container">
             <h2>Akram Chatting</h2>
             <div class="developer-tag">⚡ DEVELOPED BY AKRAM ⚡</div>
-            <p>कोई भी नंबर दर्ज करके चैट शुरू करें</p>
+            <p>अपना मोबाइल नंबर दर्ज करके चैट शुरू करें</p>
             <input type="text" id="phoneNumber" placeholder="अपना मोबाइल नंबर दर्ज करें">
             <div id="pinSection" class="hidden">
                 <input type="password" id="secretPin" placeholder="सीक्रेट पिन (1234) दर्ज करें">
@@ -117,13 +117,15 @@
                 </div>
             </div>
 
-            <!-- Search Bar to find/start chat with anyone -->
+            <!-- Search Bar -->
             <div class="search-container">
-                <input type="text" id="searchUserInput" placeholder="दोस्त का नाम या नंबर सर्च करें...">
+                <input type="text" id="searchUserInput" placeholder="दोस्त का नंबर या नाम दर्ज करें...">
                 <button onclick="searchAndOpenChat()">चैट करें</button>
             </div>
 
-            <div class="chat-list" id="chatListContainer"></div>
+            <div class="chat-list" id="chatListContainer">
+                <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 14px;">ऊपर सर्च बार में अपने दोस्त का नंबर डालकर सीधे चैट शुरू करें!</div>
+            </div>
 
             <div class="wa-nav">
                 <div class="nav-item active"><span>💬</span>Chats</div>
@@ -162,10 +164,10 @@
             <div class="room-header">
                 <div class="room-header-left">
                     <button class="back-btn" onclick="closeChat()">❮</button>
-                    <div class="room-avatar" id="roomAvatar">त</div>
+                    <div class="room-avatar" id="roomAvatar">द</div>
                     <div style="min-width: 0;">
                         <div class="room-title" id="roomTitle">दोस्त</div>
-                        <div class="room-bio" id="roomBio">Available</div>
+                        <div class="room-bio" id="roomBio">Private Chat</div>
                     </div>
                 </div>
             </div>
@@ -217,7 +219,6 @@
                 loadUserProfileFromStorage();
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                loadUserChats();
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
@@ -250,26 +251,31 @@
 
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('homeScreen').classList.remove('hidden');
-                loadUserChats();
             } else {
                 statusMsg.innerText = "गलत पिन! (डिफ़ॉल्ट पिन: 1234)";
             }
         }
 
+        // पक्का और फिक्स रूम आईडी बनाने का तरीका (ताकि दोनों तरफ एक ही कमरा खुले)
         function searchAndOpenChat() {
-            const query = document.getElementById('searchUserInput').value.trim();
-            if(!query) {
-                alert("कृपया दोस्त का नाम या नंबर दर्ज करें!");
+            let target = document.getElementById('searchUserInput').value.trim();
+            if(!target) {
+                alert("कृपया दोस्त का नंबर या नाम दर्ज करें!");
                 return;
             }
 
-            let roomId = "private_" + [currentPhone, query].sort().join("_");
-            openChat(roomId, query, "Private Chat");
-        }
+            // दोनों नंबरों या नामों को सॉर्ट करके फिक्स रूम आईडी बनाना
+            let cleanMe = currentPhone.replace(/[^0-9]/g, '');
+            let cleanTarget = target.replace(/[^0-9]/g, '');
+            
+            let roomId;
+            if(cleanTarget.length > 5 && cleanMe.length > 5) {
+                roomId = "chat_" + [cleanMe, cleanTarget].sort().join("_");
+            } else {
+                roomId = "chat_name_" + [currentPhone, target].sort().join("_");
+            }
 
-        function loadUserChats() {
-            const container = document.getElementById('chatListContainer');
-            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8696a0; font-size: 14px;">ऊपर सर्च बार में किसी का भी नाम या नंबर लिखकर तुरंत चैट शुरू करें!</div>';
+            openChat(roomId, target, "Private Chat");
         }
 
         function openChat(roomId, roomName, roomBio) {
@@ -291,7 +297,6 @@
             }
             document.getElementById('chatRoomScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            loadUserChats();
         }
 
         function openProfile() {
@@ -312,7 +317,6 @@
         function closeProfile() {
             document.getElementById('profileScreen').classList.add('hidden');
             document.getElementById('homeScreen').classList.remove('hidden');
-            loadUserChats();
         }
 
         function updateProfilePic(event) {
