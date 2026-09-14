@@ -11,76 +11,145 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-container, .chat-container { width: 100%; max-width: 450px; background: #fff; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; }
+        body { background: #121b22; color: #e1e8ed; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .app-container { width: 100%; max-width: 450px; background: #111b21; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+
+        /* Login & Pin Screen */
+        .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; height: 100%; display: flex; flex-direction: column; background: #fff; color: #333; }
         .login-container h2 { margin-bottom: 10px; color: #075e54; }
         .login-container p { margin-bottom: 20px; color: #666; font-size: 14px; }
         .login-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
         .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
-        .login-container button:hover { background: #128c7e; }
-        
-        /* Chat UI */
-        .chat-header { background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
-        .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
-        .message.sent { background: #dcf8c6; align-self: flex-end; }
-        .message.received { background: #fff; align-self: flex-start; }
-        
-        .message-time { font-size: 10px; color: #555; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
-        .double-tick { color: #34b7f1; font-weight: bold; font-size: 12px; }
 
-        .chat-input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
-        .chat-input-area input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 14px; }
-        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #075e54; padding: 5px; }
-        .chat-input-area button.send-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        /* WhatsApp Header */
+        .wa-header { background: #1f2c34; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; color: #e1e8ed; font-size: 20px; font-weight: bold; }
+        .wa-header-icons { display: flex; gap: 20px; font-size: 18px; cursor: pointer; }
+
+        /* Chat List Screen */
+        .chat-list { flex: 1; overflow-y: auto; background: #111b21; }
+        .chat-item { display: flex; align-items: center; padding: 12px 15px; gap: 15px; cursor: pointer; border-bottom: 1px solid #222d34; }
+        .chat-item:hover { background: #202c33; }
+        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; }
+        .chat-info { flex: 1; }
+        .chat-name-time { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .chat-name { font-size: 16px; color: #e1e8ed; font-weight: 500; }
+        .chat-time { font-size: 12px; color: #8696a0; }
+        .chat-last-msg { font-size: 13px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+
+        /* WhatsApp Bottom Nav */
+        .wa-nav { background: #1f2c34; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222d34; }
+        .nav-item { color: #8696a0; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item.active { color: #00a884; font-weight: bold; }
+
+        /* Chat Room Screen */
+        .chat-room { display: flex; flex-direction: column; height: 100%; background: #0b141a; }
+        .room-header { background: #1f2c34; padding: 10px 15px; display: flex; align-items: center; gap: 12px; color: #fff; }
+        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .room-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .room-title { font-size: 16px; font-weight: 500; }
+        
+        .room-messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 75%; padding: 10px; border-radius: 8px; font-size: 14px; position: relative; word-break: break-word; }
+        .message.sent { background: #005c4b; color: #e1e8ed; align-self: flex-end; }
+        .message.received { background: #202c33; color: #e1e8ed; align-self: flex-start; }
+        
+        .message-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+        .double-tick { color: #53bdeb; font-weight: bold; font-size: 12px; }
+
+        .chat-input-area { padding: 10px; background: #1f2c34; display: flex; gap: 8px; align-items: center; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; outline: none; font-size: 14px; background: #2a3942; color: #fff; }
+        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 5px; }
+        .chat-input-area button.send-btn { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- Login Screen -->
-    <div id="loginScreen" class="login-container hidden">
-        <h2>Akram Chat</h2>
-        <p>सुरक्षित लॉगिन - केवल अधिकृत उपयोगकर्ता</p>
-        
-        <input type="text" id="phoneNumber" placeholder="मोबाइल नंबर दर्ज करें (जैसे +91...)">
-        
-        <div id="pinSection" class="hidden">
-            <input type="password" id="secretPin" placeholder="अपना सीक्रेट पिन (PIN) दर्ज करें">
-            <button onclick="verifyLogin()">Login to Chat</button>
+    <div class="app-container">
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-container hidden">
+            <h2>Akram Chat</h2>
+            <p>सुरक्षित लॉगिन - केवल अधिकृत उपयोगकर्ता</p>
+            <input type="text" id="phoneNumber" placeholder="मोबाइल नंबर दर्ज करें (जैसे +91...)">
+            <div id="pinSection" class="hidden">
+                <input type="password" id="secretPin" placeholder="अपना सीक्रेट पिन (PIN) दर्ज करें">
+                <button onclick="verifyLogin()">Login to Chat</button>
+            </div>
+            <button id="nextBtn" onclick="checkNumber()">Next</button>
+            <p id="statusMsg" style="margin-top: 15px; color: #d9534f; font-size: 14px;"></p>
         </div>
 
-        <button id="nextBtn" onclick="checkNumber()">Next</button>
-        <p id="statusMsg" style="margin-top: 15px; color: #d9534f; font-size: 14px;"></p>
-    </div>
+        <!-- WhatsApp Home / Chat List Screen -->
+        <div id="homeScreen" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="wa-header">
+                <span>WhatsApp</span>
+                <div class="wa-header-icons">
+                    <span>📷</span>
+                    <span>🔍</span>
+                    <span onclick="logout()" title="Logout" style="font-size: 16px; cursor: pointer; background: #d9534f; padding: 4px 8px; border-radius: 4px; color: white;">Logout</span>
+                </div>
+            </div>
 
-    <!-- Chat Screen -->
-    <div id="chatScreen" class="chat-container hidden">
-        <div class="chat-header">
-            <h3 id="userTitle">Akram Chat</h3>
-            <button onclick="logout()" style="background: #d9534f; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message received">
-                नमस्ते! आपकी सुरक्षित चैट शुरू हो चुकी है।
-                <div class="message-time">12:30 PM</div>
+            <!-- Chat List -->
+            <div class="chat-list">
+                <div class="chat-item" onclick="openChat('तय्यब भाई')">
+                    <div class="chat-avatar">त</div>
+                    <div class="chat-info">
+                        <div class="chat-name-time">
+                            <span class="chat-name">तय्यब भाई</span>
+                            <span class="chat-time">10:15 AM</span>
+                        </div>
+                        <div class="chat-last-msg">नमस्ते अकरम भाई! सब ठीक-ठाक?</div>
+                    </div>
+                </div>
+
+                <div class="chat-item" onclick="openChat('A to Z Novelty Official')">
+                    <div class="chat-avatar" style="background: #005c4b;">A</div>
+                    <div class="chat-info">
+                        <div class="chat-name-time">
+                            <span class="chat-name">A to Z Novelty Official</span>
+                            <span class="chat-time">Yesterday</span>
+                        </div>
+                        <div class="chat-last-msg">दुकान का नया स्टॉक आ गया है।</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Bottom Navigation -->
+            <div class="wa-nav">
+                <div class="nav-item active"><span>💬</span>Chats</div>
+                <div class="nav-item"><span>🔄</span>Updates</div>
+                <div class="nav-item"><span>👥</span>Communities</div>
+                <div class="nav-item"><span>📞</span>Calls</div>
             </div>
         </div>
 
-        <!-- Input Area with Photo, Voice & Text -->
-        <div class="chat-input-area">
-            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
-            <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="तस्वीर भेजें">📷</button>
+        <!-- Individual Chat Room Screen -->
+        <div id="chatRoomScreen" class="chat-room hidden">
+            <div class="room-header">
+                <button class="back-btn" onclick="closeChat()">❮</button>
+                <div class="room-avatar" id="roomAvatar">त</div>
+                <div class="room-title" id="roomTitle">तय्यब भाई</div>
+            </div>
             
-            <button class="icon-btn" onclick="recordVoice()" title="वॉइस मैसेज भेजें">🎙️</button>
-            
-            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
-            
-            <button class="send-btn" onclick="sendMessage()">➤</button>
+            <div class="room-messages" id="chatMessages">
+                <div class="message received">
+                    नमस्ते अकरम भाई! सब ठीक-ठाक?
+                    <div class="message-time">10:15 AM</div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(event)">
+                <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📷</button>
+                <button class="icon-btn" onclick="recordVoice()">🎙️</button>
+                <input type="text" id="messageInput" placeholder="Message" onkeypress="checkEnter(event)">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
         </div>
+
     </div>
 
     <script>
@@ -104,16 +173,12 @@
 
         const SECRET_PIN = "1234"; 
 
-        // पेज लोड होते ही चेक करें कि क्या यूजर पहले से लॉग इन है या नहीं
         window.onload = function() {
             const savedUser = localStorage.getItem("akram_chat_user");
             if (savedUser && allowedUsers[savedUser]) {
-                // अगर पहले से सेव है तो सीधे चैट स्क्रीन दिखाओ
                 document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('chatScreen').classList.remove('hidden');
-                document.getElementById('userTitle').innerText = "Chat - " + allowedUsers[savedUser];
+                document.getElementById('homeScreen').classList.remove('hidden');
             } else {
-                // नहीं तो लॉगिन स्क्रीन दिखाओ
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
         };
@@ -143,15 +208,24 @@
             const phone = document.getElementById('phoneNumber').value.trim();
 
             if (pin === SECRET_PIN) {
-                // ब्राउज़र में यूजर का नंबर सेव कर लो ताकि बार-बार लॉगिन न करना पड़े
                 localStorage.setItem("akram_chat_user", phone);
-
                 document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('chatScreen').classList.remove('hidden');
-                document.getElementById('userTitle').innerText = "Chat - " + allowedUsers[phone];
+                document.getElementById('homeScreen').classList.remove('hidden');
             } else {
                 statusMsg.innerText = "गलत पिन (PIN)!";
             }
+        }
+
+        function openChat(name) {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('chatRoomScreen').classList.remove('hidden');
+            document.getElementById('roomTitle').innerText = name;
+            document.getElementById('roomAvatar').innerText = name.charAt(0);
+        }
+
+        function closeChat() {
+            document.getElementById('chatRoomScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.remove('hidden');
         }
 
         function getCurrentTime() {
@@ -201,7 +275,7 @@
         }
 
         function recordVoice() {
-            alert("वॉइस रिकॉर्डिंग शुरू हो रही है... (माइक्रोफोन चालू है)");
+            alert("वॉइस रिकॉर्डिंग शुरू हो रही है...");
             setTimeout(() => {
                 appendMessage("🎤 [वॉइस मैसेज - 0:05]", 'sent');
             }, 1500);
@@ -212,12 +286,12 @@
         }
 
         function logout() {
-            // लॉगआउट करने पर सेव किया हुआ डेटा हटा दें
             localStorage.removeItem("akram_chat_user");
             location.reload();
         }
     </script>
 </body>
 </html>
+
 
 
