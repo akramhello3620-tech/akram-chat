@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -14,9 +15,10 @@
         body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .login-container, .chat-container { width: 100%; max-width: 450px; background: #fff; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .login-container { padding: 30px; justify-content: center; align-items: center; text-align: center; }
-        .login-container h2 { margin-bottom: 20px; color: #075e54; }
+        .login-container h2 { margin-bottom: 10px; color: #075e54; }
+        .login-container p { margin-bottom: 20px; color: #666; font-size: 14px; }
         .login-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .login-container button { width: 100%; padding: 12px; background: #075e54; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
         .login-container button:hover { background: #128c7e; }
         
         /* Chat UI */
@@ -35,30 +37,28 @@
 
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
-        <h2>Akram Chat - Secure Login</h2>
-        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">मोबाइल नंबर दर्ज करें और OTP प्राप्त करें</p>
+        <h2>Akram Chat</h2>
+        <p>सुरक्षित लॉगिन - केवल अधिकृत उपयोगकर्ता</p>
         
-        <input type="text" id="phoneNumber" placeholder="+917283988065">
-        <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        <input type="text" id="phoneNumber" placeholder="मोबाइल नंबर दर्ज करें (जैसे +91...)">
         
-        <!-- Invisible Recaptcha Element -->
-        <div id="recaptcha-container"></div>
-
-        <div id="otpSection" class="hidden">
-            <input type="text" id="otpCode" placeholder="6-digit OTP enter karein">
-            <button onclick="verifyOTP()">Verify OTP & Login</button>
+        <div id="pinSection" class="hidden">
+            <input type="password" id="secretPin" placeholder="अपना सीक्रेट पिन (PIN) दर्ज करें">
+            <button onclick="verifyLogin()">Login to Chat</button>
         </div>
+
+        <button id="nextBtn" onclick="checkNumber()">Next</button>
         <p id="statusMsg" style="margin-top: 15px; color: #d9534f; font-size: 14px;"></p>
     </div>
 
     <!-- Chat Screen -->
     <div id="chatScreen" class="chat-container hidden">
         <div class="chat-header">
-            <h3>Akram Chat</h3>
+            <h3 id="userTitle">Akram Chat</h3>
             <button onclick="logout()" style="background: #d9534f; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message received">नमस्ते अकरम! आपकी चैट ऐप सफलता से लाइव हो चुकी है।</div>
+            <div class="message received">नमस्ते! आपकी सुरक्षित चैट शुरू हो चुकी है।</div>
         </div>
         <div class="chat-input-area">
             <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
@@ -80,64 +80,49 @@
             firebase.initializeApp(firebaseConfig);
         }
 
-        const auth = firebase.auth();
-        auth.useDeviceLanguage();
+        const db = firebase.database();
 
-        // Initialize Invisible Recaptcha properly bound to the button
-        window.onload = function() {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', {
-                'size': 'invisible',
-                'callback': (response) => {
-                    // reCAPTCHA solved, allow sendOTP
-                }
-            }, auth);
-            window.recaptchaVerifier.render();
+        // यहाँ उन नंबरों की लिस्ट है जिन्हें आपने अनुमति दी है (आप और आपके भाई तय्यब का नंबर)
+        const allowedUsers = {
+            "+917283988065": "अकरम",
+            "+919876543210": "तय्यब" // यहाँ तय्यब का असली नंबर डाल सकते हैं
         };
 
-        function sendOTP() {
-            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        // सुरक्षा के लिए तय किया गया सीक्रेट पिन (आप इसे बदल भी सकते हैं)
+        const SECRET_PIN = "8200"; 
+
+        function checkNumber() {
+            const phone = document.getElementById('phoneNumber').value.trim();
             const statusMsg = document.getElementById('statusMsg');
 
-            if (!phoneNumber) {
-                statusMsg.innerText = "कृपया सही मोबाइल नंबर दर्ज करें!";
+            if (!phone) {
+                statusMsg.innerText = "कृपया अपना मोबाइल नंबर दर्ज करें!";
                 return;
             }
 
-            statusMsg.innerText = "OTP भेजा जा रहा है, प्रतीक्षा करें...";
-            const appVerifier = window.recaptchaVerifier;
-
-            auth.signInWithPhoneNumber(phoneNumber, appVerifier)
-                .then((confirmationResult) => {
-                    window.confirmationResult = confirmationResult;
-                    statusMsg.innerText = "OTP आपके नंबर पर भेज दिया गया है!";
-                    document.getElementById('otpSection').classList.remove('hidden');
-                    document.getElementById('sendOtpBtn').classList.add('hidden');
-                }).catch((error) => {
-                    console.error(error);
-                    statusMsg.innerText = "OTP भेजने में त्रुटि: " + error.message;
-                    if (window.recaptchaVerifier) {
-                        window.recaptchaVerifier.render().then(widgetId => {
-                            grecaptcha.reset(widgetId);
-                        });
-                    }
-                });
+            // चेक करें कि क्या नंबर हमारी अधिकृत लिस्ट में है या नहीं
+            if (allowedUsers[phone]) {
+                statusMsg.innerText = "";
+                document.getElementById('phoneNumber').classList.add('hidden');
+                document.getElementById('nextBtn').classList.add('hidden');
+                document.getElementById('pinSection').classList.remove('hidden');
+            } else {
+                statusMsg.innerText = "यह नंबर अधिकृत नहीं है! कोई भी बाहरी व्यक्ति लॉगिन नहीं कर सकता।";
+            }
         }
 
-        function verifyOTP() {
-            const code = document.getElementById('otpCode').value.trim();
+        function verifyLogin() {
+            const pin = document.getElementById('secretPin').value.trim();
             const statusMsg = document.getElementById('statusMsg');
+            const phone = document.getElementById('phoneNumber').value.trim();
 
-            if (!code) {
-                statusMsg.innerText = "कृपया OTP दर्ज करें!";
-                return;
-            }
-
-            window.confirmationResult.confirm(code).then((result) => {
+            if (pin === SECRET_PIN) {
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('chatScreen').classList.remove('hidden');
-            }).catch((error) => {
-                statusMsg.innerText = "गलत OTP! कृपया दोबारा प्रयास करें।";
-            });
+                document.getElementById('userTitle').innerText = "Chat - " + allowedUsers[phone];
+            } else {
+                statusMsg.innerText = "गलत पिन (PIN)! कृपया सही पिन दर्ज करें।";
+            }
         }
 
         function sendMessage() {
@@ -159,9 +144,7 @@
         }
 
         function logout() {
-            auth.signOut().then(() => {
-                location.reload();
-            });
+            location.reload();
         }
     </script>
 </body>
