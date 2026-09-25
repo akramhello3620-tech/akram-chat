@@ -1,1 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>AKRAM SECURE_CHAT</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+    }
+
+    .app {
+      max-width: 500px;
+      margin: auto;
+      min-height: 100vh;
+      background: white;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .developer {
+      margin-top: 5px;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+
+    .login {
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 60px;
+      margin: 30px 0 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button.google {
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #cbd5e1;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .users {
+      padding: 15px;
+    }
+
+    .user {
+      padding: 15px;
+      margin: 7px 0;
+      border-radius: 10px;
+      background: #f1f5f9;
+      cursor: pointer;
+    }
+
+    .chat {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      background: #111827;
+      color: white;
+      padding: 15px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8fafc;
+    }
+
+    .message {
+      padding: 10px;
+      margin: 7px;
+      border-radius: 12px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .mine {
+      background: #dbeafe;
+      margin-left: auto;
+    }
+
+    .other {
+      background: white;
+      border: 1px solid #e5e7eb;
+    }
+
+    .message img {
+      max-width: 220px;
+      border-radius: 10px;
+    }
+
+    .send-box {
+      display: flex;
+      padding: 8px;
+      gap: 5px;
+      border-top: 1px solid #ddd;
+    }
+
+    .send-box input {
+      margin: 0;
+    }
+
+    .small-btn {
+      width: 55px;
+      margin: 0;
+    }
+
+    audio {
+      max-width: 220px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+
+  <div class="header">
+    <h1>🔐 AKRAM SECURE_CHAT</h1>
+    <div class="developer">
+      Developer by Akram
+    </div>
+  </div>
+
+
+  <!-- LOGIN -->
+
+  <div id="loginPage" class="login">
+
+    <div class="logo">
+      🔐
+    </div>
+
+    <h2>AKRAM SECURE_CHAT</h2>
+
+    <p>Developer by Akram</p>
+
+    <button
+      id="googleLogin"
+      class="google">
+      Login with Google
+    </button>
+
+    <p>OR</p>
+
+    <input
+      id="phoneNumber"
+      type="tel"
+      placeholder="+91XXXXXXXXXX">
+
+    <button id="sendOTP">
+      Send OTP
+    </button>
+
+    <div id="recaptcha"></div>
+
+    <input
+      id="otp"
+      class="hidden"
+      type="number"
+      placeholder="Enter OTP">
+
+    <button
+      id="verifyOTP"
+      class="hidden">
+      Verify OTP
+    </button>
+
+    <p id="loginMessage"></p>
+
+  </div>
+
+
+  <!-- HOME -->
+
+  <div id="homePage" class="hidden">
+
+    <div class="users">
+
+      <h2>Users</h2>
+
+      <div id="userList">
+        Loading users...
+      </div>
+
+      <button id="logout">
+        Logout
+      </button>
+
+      <div class="footer">
+        AKRAM SECURE_CHAT<br>
+        Developer by Akram
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CHAT -->
+
+  <div id="chatPage" class="chat">
+
+    <div class="chat-header">
+
+      <b id="chatUserName">
+        Chat
+      </b>
+
+    </div>
+
+    <div
+      id="messages"
+      class="messages">
+    </div>
+
+    <div class="send-box">
+
+      <button
+        id="photoButton"
+        class="small-btn">
+        📷
+      </button>
+
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Message...">
+
+      <button
+        id="sendMessage"
+        class="small-btn">
+        ➤
+      </button>
+
+      <button
+        id="voiceButton"
+        class="small-btn">
+        🎤
+      </button>
+
+      <input
+        id="photoInput"
+        type="file"
+        accept="image/*"
+        class="hidden">
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- FIREBASE -->
+
+<script type="module">
+
+import {
+  initializeApp
+} from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  onAuthStateChanged,
+  signOut
+} from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
+
+
+/* =====================================================
+   IMPORTANT
+
+   नीचे अपना Firebase CONFIG डालना है।
+   ===================================================== */
+
+
+const firebaseConfig = {
+
+  apiKey: "YOUR_API_KEY",
+
+  authDomain:
+    "YOUR_PROJECT.firebaseapp.com",
+
+  projectId:
+    "YOUR_PROJECT_ID",
+
+  storageBucket:
+    "YOUR_PROJECT.firebasestorage.app",
+
+  messagingSenderId:
+    "YOUR_MESSAGING_SENDER_ID",
+
+  appId:
+    "YOUR_APP_ID"
+
+};
+
+
+/* Firebase Start */
+
+const app =
+  initializeApp(firebaseConfig);
+
+const auth =
+  getAuth(app);
+
+const db =
+  getFirestore(app);
+
+const storage =
+  getStorage(app);
+
+
+/* VARIABLES */
+
+let currentUser = null;
+
+let selectedUser = null;
+
+let confirmationResult = null;
+
+let currentChatListener = null;
+
+
+/* ELEMENTS */
+
+const loginPage =
+  document.getElementById("loginPage");
+
+const homePage =
+  document.getElementById("homePage");
+
+const chatPage =
+  document.getElementById("chatPage");
+
+const loginMessage =
+  document.getElementById("loginMessage");
+
+
+/* =====================================================
+   GOOGLE LOGIN
+   ===================================================== */
+
+document
+.getElementById("googleLogin")
+.addEventListener("click", async () => {
+
+  try {
+
+    const provider =
+      new GoogleAuthProvider();
+
+    const result =
+      await signInWithPopup(
+        auth,
+        provider
+      );
+
+    await saveUser(
+      result.user
+    );
+
+  }
+
+  catch(error) {
+
+    alert(error.message);
+
+  }
+
+});
+
+
+/* =====================================================
+   SAVE USER
+   ===================================================== */
+
+async function saveUser(user) {
+
+  await setDoc(
+
+    doc(
+      db,
+      "users",
+      user.uid
+    ),
+
+    {
+
+      uid: user.uid,
+
+      name:
+        user.displayName ||
+        "User",
+
+      email:
+        user.email || "",
+
+      phone:
+        user.phoneNumber || "",
+
+      photo:
+        user.photoURL || "",
+
+      updatedAt:
+        serverTimestamp()
+
+    },
+
+    {
+      merge: true
+    }
+
+  );
+
+}
+
+
+/* =====================================================
+   PHONE OTP
+   ===================================================== */
+
+let recaptchaVerifier;
+
+
+/* Send OTP */
+
+document
+.getElementById("sendOTP")
+.addEventListener("click", async () => {
+
+  try {
+
+    recaptchaVerifier =
+      new RecaptchaVerifier(
+        auth,
+        "recaptcha",
+        {
+          size: "normal"
+        }
+      );
+
+
+    const phone =
+      document
+      .getElementById("phoneNumber")
+      .value;
+
+
+    confirmationResult =
+      await signInWithPhoneNumber(
+        auth,
+        phone,
+        recaptchaVerifier
+      );
+
+
+    document
+    .getElementById("otp")
+    .classList
+    .remove("hidden");
+
+
+    document
+    .getElementById("verifyOTP")
+    .classList
+    .remove("hidden");
+
+
+    loginMessage.innerText =
+      "OTP भेज दिया गया है।";
+
+
+  }
+
+  catch(error) {
+
+    loginMessage.innerText =
+      error.message;
+
+  }
+
+});
+
+
+/* Verify OTP */
+
+document
+.getElementById("verifyOTP")
+.addEventListener("click", async () => {
+
+  try {
+
+    const code =
+      document
+      .getElementById("otp")
+      .value;
+
+
+    const result =
+      await confirmationResult
+      .confirm(code);
+
+
+    await saveUser(
+      result.user
+    );
+
+  }
+
+  catch(error) {
+
+    alert(
+      "OTP गलत है।"
+    );
+
+  }
+
+});
+
+
+/* =====================================================
+   AUTH STATE
+   ===================================================== */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+
+    if(user) {
+
+      currentUser =
+        user;
+
+      await saveUser(
+        user
+      );
+
+      loginPage
+      .classList
+      .add("hidden");
+
+      homePage
+      .classList
+      .remove("hidden");
+
+      loadUsers();
+
+    }
+
+    else {
+
+      currentUser =
+        null;
+
+      loginPage
+      .classList
+      .remove("hidden");
+
+      homePage
+      .classList
+      .add("hidden");
+
+      chatPage
+      .style
+      .display =
+      "none";
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   LOAD USERS
+   ===================================================== */
+
+function loadUsers() {
+
+  const usersRef =
+    collection(
+      db,
+      "users"
+    );
+
+
+  onSnapshot(
+    usersRef,
+    snapshot => {
+
+      const list =
+        document
+        .getElementById(
+          "userList"
+        );
+
+
+      list.innerHTML = "";
+
+
+      snapshot.forEach(
+        userDoc => {
+
+          if(
+            userDoc.id ===
+            currentUser.uid
+          ) {
+
+            return;
+
+          }
+
+
+          const user =
+            userDoc.data();
+
+
+          const div =
+            document
+            .createElement(
+              "div"
+            );
+
+
+          div.className =
+            "user";
+
+
+          div.innerHTML =
+            "👤 " +
+            (
+              user.name ||
+              "User"
+            );
+
+
+          div.onclick =
+            () => openChat(
+              userDoc.id,
+              user.name ||
+              "User"
+            );
+
+
+          list.appendChild(
+            div
+          );
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   CHAT ID
+   ===================================================== */
+
+function getChatID(
+  uid1,
+  uid2
+) {
+
+  return [
+    uid1,
+    uid2
+  ]
+  .sort()
+  .join("_");
+
+}
+
+
+/* =====================================================
+   OPEN CHAT
+   ===================================================== */
+
+function openChat(
+  uid,
+  name
+) {
+
+  selectedUser = {
+
+    uid: uid,
+
+    name: name
+
+  };
+
+
+  document
+  .getElementById(
+    "chatUserName"
+  )
+  .innerText =
+    name;
+
+
+  homePage
+  .classList
+  .add("hidden");
+
+
+  chatPage
+  .style
+  .display =
+    "flex";
+
+
+  if(
+    currentChatListener
+  ) {
+
+    currentChatListener();
+
+  }
+
+
+  const chatID =
+    getChatID(
+      currentUser.uid,
+      uid
+    );
+
+
+  const messagesRef =
+    collection(
+      db,
+      "chats",
+      chatID,
+      "messages"
+    );
+
+
+  const q =
+    query(
+      messagesRef,
+      orderBy(
+        "createdAt"
+      )
+    );
+
+
+  currentChatListener =
+    onSnapshot(
+      q,
+      snapshot => {
+
+        const box =
+          document
+          .getElementById(
+            "messages"
+          );
+
+
+        box.innerHTML =
+          "";
+
+
+        snapshot.forEach(
+          messageDoc => {
+
+            showMessage(
+              messageDoc.data(),
+              box
+            );
+
+          }
+        );
+
+
+        box.scrollTop =
+          box.scrollHeight;
+
+      }
+    );
+
+}
+
+
+/* =====================================================
+   SHOW MESSAGE
+   ===================================================== */
+
+function showMessage(
+  message,
+  box
+) {
+
+  const div =
+    document
+    .createElement(
+      "div"
+    );
+
+
+  div.className =
+    "message " +
+    (
+      message.senderId ===
+      currentUser.uid
+      ?
+      "mine"
+      :
+      "other"
+    );
+
+
+  if(
+    message.type ===
+    "image"
+  ) {
+
+    const img =
+      document
+      .createElement(
+        "img"
+      );
+
+
+    img.src =
+      message.url;
+
+
+    div.appendChild(
+      img
+    );
+
+  }
+
+  else if(
+    message.type ===
+    "voice"
+  ) {
+
+    const audio =
+      document
+      .createElement(
+        "audio"
+      );
+
+
+    audio.controls =
+      true;
+
+
+    audio.src =
+      message.url;
+
+
+    div.appendChild(
+      audio
+    );
+
+  }
+
+  else {
+
+    div.innerText =
+      message.text ||
+      "";
+
+  }
+
+
+  box.appendChild(
+    div
+  );
+
+}
+
+
+/* =====================================================
+   SEND TEXT MESSAGE
+   ===================================================== */
+
+document
+.getElementById(
+  "sendMessage"
+)
+.addEventListener(
+  "click",
+  sendText
+);
+
+
+document
+.getElementById(
+  "messageInput"
+)
+.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key ===
+      "Enter"
+    ) {
+
+      sendText();
+
+    }
+
+  }
+);
+
+
+async function sendText() {
+
+  if(
+    !selectedUser
+  ) {
+
+    return;
+
+  }
+
+
+  const input =
+    document
+    .getElementById(
+      "messageInput"
+    );
+
+
+  const text =
+    input.value.trim();
+
+
+  if(
+    !text
+  ) {
+
+    return;
+
+  }
+
+
+  input.value =
+    "";
+
+
+  const chatID =
+    getChatID(
+      currentUser.uid,
+      selectedUser.uid
+    );
+
+
+  await addDoc(
+
+    collection(
+      db,
+      "chats",
+      chatID,
+      "messages"
+    ),
+
+    {
+
+      senderId:
+        currentUser.uid,
+
+      type:
+        "text",
+
+      text:
+        text,
+
+      createdAt:
+        serverTimestamp()
+
+    }
+
+  );
+
+}
+
+
+/* =====================================================
+   PHOTO SEND
+   ===================================================== */
+
+document
+.getElementById(
+  "photoButton"
+)
+.addEventListener(
+  "click",
+  () => {
+
+    document
+    .getElementById(
+      "photoInput"
+    )
+    .click();
+
+  }
+);
+
+
+document
+.getElementById(
+  "photoInput"
+)
+.addEventListener(
+  "change",
+  async event => {
+
+    const file =
+      event
+      .target
+      .files[0];
+
+
+    if(
+      !file ||
+      !selectedUser
+    ) {
+
+      return;
+
+    }
+
+
+    const chatID =
+      getChatID(
+        currentUser.uid,
+        selectedUser.uid
+      );
+
+
+    const storageRef =
+      ref(
+        storage,
+        "chat_media/" +
+        chatID +
+        "/" +
+        Date.now() +
+        "_" +
+        file.name
+      );
+
+
+    await uploadBytes(
+      storageRef,
+      file
+    );
+
+
+    const url =
+      await getDownloadURL(
+        storageRef
+      );
+
+
+    await addDoc(
+
+      collection(
+        db,
+        "chats",
+        chatID,
+        "messages"
+      ),
+
+      {
+
+        senderId:
+          currentUser.uid,
+
+        type:
+          "image",
+
+        url:
+          url,
+
+        createdAt:
+          serverTimestamp()
+
+      }
+
+    );
+
+  }
+);
+
+
+/* =====================================================
+   VOICE MESSAGE
+   ===================================================== */
+
+let mediaRecorder;
+
+let audioChunks = [];
+
+let recording =
+  false;
+
+
+document
+.getElementById(
+  "voiceButton"
+)
+.addEventListener(
+  "click",
+  async () => {
+
+    if(
+      !recording
+    ) {
+
+      const stream =
+        await navigator
+        .mediaDevices
+        .getUserMedia({
+          audio: true
+        });
+
+
+      mediaRecorder =
+        new MediaRecorder(
+          stream
+        );
+
+
+      audioChunks =
+        [];
+
+
+      mediaRecorder
+      .ondataavailable =
+        event => {
+
+          audioChunks
+          .push(
+            event.data
+          );
+
+        };
+
+
+      mediaRecorder
+      .onstop =
+        async () => {
+
+          const blob =
+            new Blob(
+              audioChunks,
+              {
+                type:
+                  "audio/webm"
+              }
+            );
+
+
+          const chatID =
+            getChatID(
+              currentUser.uid,
+              selectedUser.uid
+            );
+
+
+          const storageRef =
+            ref(
+              storage,
+              "chat_media/" +
+              chatID +
+              "/" +
+              Date.now() +
+              ".webm"
+            );
+
+
+          await uploadBytes(
+            storageRef,
+            blob
+          );
+
+
+          const url =
+            await getDownloadURL(
+              storageRef
+            );
+
+
+          await addDoc(
+
+            collection(
+              db,
+              "chats",
+              chatID,
+              "messages"
+            ),
+
+            {
+
+              senderId:
+                currentUser.uid,
+
+              type:
+                "voice",
+
+              url:
+                url,
+
+              createdAt:
+                serverTimestamp()
+
+            }
+
+          );
+
+        };
+
+
+      mediaRecorder.start();
+
+      recording =
+        true;
+
+
+      document
+      .getElementById(
+        "voiceButton"
+      )
+      .innerText =
+        "⏹️";
+
+    }
+
+    else {
+
+      mediaRecorder.stop();
+
+      recording =
+        false;
+
+
+      document
+      .getElementById(
+        "voiceButton"
+      )
+      .innerText =
+        "🎤";
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   LOGOUT
+   ===================================================== */
+
+document
+.getElementById(
+  "logout"
+)
+.addEventListener(
+  "click",
+  () => {
+
+    signOut(
+      auth
+    );
+
+  }
+);
+
+
+/* =====================================================
+   SCREENSHOT DETERRENTS
+
+   Browser में screenshot को 100% block
+   करना संभव नहीं है।
+   ===================================================== */
+
+document
+.addEventListener(
+  "contextmenu",
+  event =>
+    event.preventDefault()
+);
+
+
+</script>
+
+</body>
+</html>
